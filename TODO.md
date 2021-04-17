@@ -1,5 +1,5 @@
 # TODO
-
+Todo list for the project
 
 ## Will Do:
  * [ ] Limit simultanious downloads on the server
@@ -20,8 +20,9 @@
  	* Assign a score/reward to a user for uploading a movie
  		* Scores will be used for later
  		* Add the propper scores to people who have uploaded prior to this functionality being implemented
+ * [ ] Fully merge this project with the *Plex* Discord bot project
+ 	* The name will be changed to *Plex Bot* for everything
 
 ## Experimental Ideas:
  * [ ] Create a hotkey system to grab the link directly from the clipboard
  * [ ] Create a proxy to intercept the GET requests and forward the links to the server
- * [ ]

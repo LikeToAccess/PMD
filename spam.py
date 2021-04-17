@@ -14,7 +14,7 @@ import socket
 import os
 
 
-address = "10.200.10.200"
+address = "10.200.10.200"  # server address
 port = 26490
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((address, port))

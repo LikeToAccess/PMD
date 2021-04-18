@@ -1,5 +1,5 @@
-# SMD
-Server Media Downloader (soon to be merged into *Plex Bot*)
+# PMD
+Plex Media Downloader (soon to be merged into *Plex Bot*)
 
 ## Goal:
  * Create an accessible means for anyone who wants to to contribute media to a Plex server

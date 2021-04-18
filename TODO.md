@@ -1,15 +1,19 @@
 # TODO
 Todo list for the project
 
+
+## Priority:
+ * [ ] Move contents of TODO.md into Github Projects tab
+ * [ ] If the movie failed to download, lower the resolution and try again
+ * [x] Automatically download files with HTTP GET requests
+
 ## Will Do:
  * [ ] Limit simultanious downloads on the server
  * [ ] Send feedback on the overall progress of downloads back to the client
  * [x] Create a robust server to handle multiple client connections
  * [ ] Fix *client.py* to not be so bad
- * [x] Automatically download files with HTTP GET requests
  * [ ] Set up *server.py* as the server-side for active deployment
  * [ ] Create a binary executable for the client
- * [ ] If the movie failed to download, lower the resolution and try again
  * [ ] Integrate the client into the Discord bot for contributers to have easy access
  	* Networking is not needed as both programs will be running on the same system
  * [ ] Prevent the client from connecting unless their Discord can be verified

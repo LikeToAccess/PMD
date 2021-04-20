@@ -12,12 +12,12 @@
 #==============================================================================
 import socket
 import os
+import config as cfg
 
-
-address = "10.200.10.200"  # server address
-port = 26490
+address = cfg.remote_server_address
+port = cfg.server_port
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((address, port))
-print(s.recv(1024).decode("utf8"))
+print(s.recv(cfg.network_buffer).decode("utf8"))
 while True:
 	s.send(input(f"{os.getcwd()}> ").encode("utf8"))

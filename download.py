@@ -9,7 +9,7 @@ headers = {"user-agent": cfg.user_agent}
 quality = cfg.video_quality
 media_files = media.Media("MOVIES")
 home = os.getcwd()
-req.adapters.HTTPAdapter(max_retries=2)
+# req.adapters.HTTPAdapter(max_retries=2)
 
 
 def url_format(url, target_res):
@@ -75,13 +75,16 @@ def download(url):
 	return absolute_path
 
 def stream_data(request, filename, chunk_size=cfg.stream_chunk_size):
+	count = 0
 	with open(filename, "wb") as file:
-		for count, chunk in enumerate(request.iter_content(chunk_size=chunk_size)):
-			file.write(chunk)
-			if count == 4:
-				print("IN PROGRESS (currently downloading)")
-			if count % 10 == 0:
-				print(f"{size(filename)/(1024*1024)} downloaded.")
+		for chunk in request.iter_content(chunk_size=chunk_size):
+			if chunk:
+				file.write(chunk)
+				count += 1
+				if count == 2:
+					print("IN PROGRESS (currently downloading)")
+				if count % 10 == 0:
+					print(f"{round(size(filename)/(1024*1024),2)}MB downloaded.")
 		return filename
 	print("DEBUG: Something went wrong in stream_data")
 	return False

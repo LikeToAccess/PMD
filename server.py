@@ -55,7 +55,8 @@ class Client:
 				print(f"{self.host}:{self.address[1]} || Recieved \"{msg}\" from \"{self.address[0]}\".")
 				if msg[:8] == "https://":
 					print("Testing link...")
-					result = download.download(msg)
+					threaded_download = Thread(target=download.download, args=(msg,))
+					threaded_download.start()
 			print(f"{self.address[0]}:{self.address[1]} || Client disconnected.")
 
 class Server:

@@ -1,5 +1,5 @@
 import config as cfg
-import download
+import progress
 
 
 headers = {"user-agent": cfg.user_agent}
@@ -9,10 +9,16 @@ def download_file(request, filename="MOVIE.mp4", chunk_size=cfg.stream_chunk_siz
 	with request as r:
 		r.raise_for_status()
 		with open(filename, 'wb') as file:
+			print("IN-PROGRESS")
 			for count, chunk in enumerate(request.iter_content(chunk_size=chunk_size)):
 				file.write(chunk)
-				if count % 5 == 0:
-					print(f"{round(download.size(filename)/(1024*1024),2)}MB downloaded.")
+				progress.file_size(filename, count)
+				# if count <= 45:
+				# 	progress.progress_bar(count)
+				# else:
+				# 	progress.progress_bar(count-45*(count/45))
+				# if count % 5 == 0:
+				# 	print(f"{round(download.size(filename)/(1024*1024),2)}MB downloaded.")
 	return filename
 
 # def stream_data(request, filename, chunk_size=cfg.stream_chunk_size):

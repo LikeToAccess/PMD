@@ -39,7 +39,9 @@ def size(filename):
 
 def download(url):
 	resolution = cfg.read_attempts()
-	url = url_format(url, resolution)
+	try: url = url_format(url, resolution)
+	except IndexError as error:
+		return test_link(url, resolution=resolution, error=error)
 	try: filename = media_files.rename(url.split("?name=")[1].split("&token=ip=")[0]+".mp4")
 	except IndexError: filename = False
 	try: request = req.get(url, headers=headers, stream=True, timeout=(30,cfg.timeout))
@@ -73,6 +75,5 @@ def download(url):
 		except UnicodeDecodeError:
 			pass
 	cfg.reset_attempts()
-	print("SUCCESS")
-	print(f"Finished download in {quality[int(resolution)]}p.")
+	print(f"Finished download in {quality[int(resolution)]}p ({size(filename)/1024/1024} MB.)")
 	return absolute_path

@@ -1,6 +1,7 @@
 import sys
 from time import sleep
-import config as cfg
+# from bot import set_status
+# import config as cfg
 import download
 
 bar_width = 45
@@ -24,13 +25,17 @@ def progress_bar(progress="new"):
 
 def file_size(filename, count):
 	size = download.size(filename)
+	size = size/1024/1024
 	if count == 1:
-		sys.stdout.write(f"{size/1024/1024} MB")
+		sys.stdout.write(f"{size} MB")
 		sys.stdout.flush()
 	elif count >= 2:
-		sys.stdout.write("\b"*int(size/1024/1024+3))
-		sys.stdout.write(f"{size/1024/1024} MB")
+		sys.stdout.write("\b"*int(size+3))
+		sys.stdout.write(f"{size} MB")
 		sys.stdout.flush()
+		# set_status(f"{size} MB downloading...")
+	return size
+
 
 if __name__ == "__main__":
 	print("Downloading Movie...")

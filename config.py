@@ -7,9 +7,9 @@ import socket
 #
 local_server_address = socket.gethostbyname(socket.gethostname())
 # local_server_address = "192.168.123.1"
-remote_server_address = "127.0.0.1"
+# remote_server_address = "127.0.0.1"
 # remote_server_address = "192.168.50.209"
-# remote_server_address = "plexserver.ga"
+remote_server_address = "plexserver.ga"
 server_port = 26490
 network_buffer = 1024
 max_connections = 5
@@ -18,7 +18,7 @@ max_connections = 5
 #
 # [DOWNLOAD OPTIONS]
 #
-download_attempts = 2
+download_attempts = 0
 user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
 video_quality = [2160, 1440, 1080, 720, 480, 360]
 # video_quality = [2160, 360]

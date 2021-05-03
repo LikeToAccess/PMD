@@ -6,7 +6,10 @@ __pycache__/
 # SHOW FOLDERS
 TV SHOWS/
 MOVIES/
+MUSIC/
 
+# CREDENTIALS
+credentials.md
 
 # C extensions
 *.so

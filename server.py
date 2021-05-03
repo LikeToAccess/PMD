@@ -11,8 +11,10 @@
 # py version        : 3.8.2 (must run on 3.6 or higher)
 #==============================================================================
 import socket
+import os
 from threading import Thread
 import download
+# import bot
 import config as cfg
 
 
@@ -20,6 +22,11 @@ def on_new_user(client, address, host=socket.gethostbyname(socket.gethostname())
 	print("Running new instance...")
 	client = Client(client, address, host)
 	client.run()
+
+def start_bot():
+	# print("Starting up the Discord Bot...")
+	# bot.run()
+	os.system("python3 bot.py")
 
 
 class Client:
@@ -81,6 +88,10 @@ class Server:
 		self.s.listen(max_connections)
 
 	def run(self):
+		threaded_bot = Thread(target=start_bot)
+		threaded_bot.start()
+
+		print("DEBUG: started bot!")
 		cfg.reset_attempts()
 		self.listen()
 		while True:

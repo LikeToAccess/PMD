@@ -18,10 +18,40 @@ def needs_formating(filename):
 		): return True
 	return False
 
+def read_file(filename, directory=None, filter=False):
+	if directory:
+		os.chdir(f"{os.getcwd()}/{directory}")
+	with open(filename, "r") as file:
+		lines = file.read().split("\n")
+	if filter:
+		lines = filter_list(lines)
+	return lines
+
+def write_file(filename, msg):
+	with open(filename, "w") as file:
+		file.write(msg)
+
+def append_file(filename, msg):
+	with open(filename, "a") as file:
+		file.write(msg)
+
+def filter_list(lines, filename=False):
+	if filename:
+		lines = read_file(filename)
+	data = []
+	for line in lines:
+		if line[:1] != "#" and line != "":
+			data.append(line)
+	return data
+
 
 class Media:
 	def __init__(self, path):
 		self.path = path
+		self.season = False
+		self.episode = False
+		self.show_title = False
+		self.episode_title = False
 
 	def move(self, filename=None, show_title=None):
 		os.chdir(f"X:/PLEX/TEMP/{self.path}")
@@ -44,13 +74,13 @@ class Media:
 			name = filename.replace("-", " ")
 			names = filename.split("-")
 			if "season" in names and "episode" in names and "_" in filename:
-				self.path = "TV SHOWS"
-				season = name.split("season")[1].strip().split()[0]
-				season = season if len(season) >= 2 else "0" + season
-				episode = name.split("episode")[1].strip().split()[0]
-				show_title = name.split("season")[0].strip()
-				episode_title = name.split("episode")[1].replace(episode, "").strip().split("_")[0]
-				filename = f"{show_title} - S{season}E{episode} - {episode_title}"
+				self.season = name.split("season")[1].strip().split()[0]
+				self.season = self.season if len(self.season) >= 2 else "0" + self.season
+				self.episode = name.split("episode")[1].strip().split()[0]
+				self.show_title = name.split("season")[0].strip()
+				self.episode_title = name.split("episode")[1].replace(self.episode, "").strip().split("_")[0]
+				self.path = f"TV SHOWS/{self.show_title}/Season {self.season}"
+				filename = f"{self.show_title} - S{self.season}E{self.episode} - {self.episode_title}"
 			elif needs_formating(filename):
 				self.path = "MOVIES"
 				for quality in cfg.video_quality:

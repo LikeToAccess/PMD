@@ -8,10 +8,11 @@ Todo list for the project
  * [x] Automatically download files with HTTP GET requests
  * [ ] Fix concurrent downloads
    * When a new download starts before the first has finished, the quality of the new one will be the same as the first
+ * [ ] In-progress downloads should have the .crdownload extension, then be renamed after they complete
 
 ## Will Do:
  * [ ] Limit simultanious downloads on the server
- * [ ] Send feedback on the overall progress of downloads back to the client
+ * [x] Send feedback on the overall progress of downloads back to the client
  * [x] Create a robust server to handle multiple client connections
  * [ ] Fix *client.py* to not be so bad
  * [x] Set up *server.py* as the server-side for active deployment

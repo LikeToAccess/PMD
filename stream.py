@@ -1,4 +1,4 @@
-import os
+# import os
 import config as cfg
 import progress
 from media import log

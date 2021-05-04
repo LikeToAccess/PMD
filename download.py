@@ -1,6 +1,6 @@
 from time import time
 import os
-import sys
+# import sys
 import requests as req
 import config as cfg
 import stream
@@ -85,7 +85,7 @@ def download(url):
 
 	start_time = time()
 	try: stream.download_file(request, absolute_path, start_time=start_time)
-	except req.exceptions.ConnectionError:
+	except (req.exceptions.ConnectionError, ConnectionResetError, req.exceptions.ChunkedEncodingError):
 		download(url)
 		log("Connection error.")
 		return False

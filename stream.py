@@ -7,7 +7,7 @@ from media import log
 headers = {"user-agent": cfg.user_agent}
 
 
-def download_file(request, filename="MOVIE.mp4", chunk_size=cfg.stream_chunk_size):
+def download_file(request, filename="MOVIE.mp4", chunk_size=cfg.stream_chunk_size, start_time=None):
 	with request as r:
 		r.raise_for_status()
 		with open(filename, "wb") as file:
@@ -17,7 +17,7 @@ def download_file(request, filename="MOVIE.mp4", chunk_size=cfg.stream_chunk_siz
 			log(msg)
 			for count, chunk in enumerate(request.iter_content(chunk_size=chunk_size)):
 				file.write(chunk)
-				progress.file_size(filename, count)
+				progress.file_size(filename, count, start_time=start_time)
 				# if count <= 45:
 				# 	progress.progress_bar(count)
 				# else:

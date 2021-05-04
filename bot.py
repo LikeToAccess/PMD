@@ -1,36 +1,36 @@
-from datetime import datetime
+# from datetime import datetime
 import os
-import sys
-# from threading import Thread
-from multiprocessing.pool import ThreadPool
+# import sys
+from threading import Thread
+# from multiprocessing.pool import ThreadPool
 import discord
 import youtube_dl
-import config as cfg
 from discord.ext import commands, tasks
+import config as cfg
 import media
 import download
 
 
-async def log(ctx, authenticated, filename="log.txt"):
-	if not authenticated:
-		await ctx.message.delete()
-		await ctx.send(f"*{ctx.author}*, is not in the allowed users list!\nThis event has been logged.")
-	authenticated = "FAILED to execute" if not authenticated else "SUCCESFULLY executed"
-	data = ctx.message.content
-	data = f"[{datetime.now()}]{ctx.message.author} :: {authenticated} \"{data}\"\n"
-	print(data)
-	media.append_file(filename, data)
+# async def log(ctx, authenticated, filename="log.txt"):
+# 	if not authenticated:
+# 		await ctx.message.delete()
+# 		await ctx.send(f"*{ctx.author}*, is not in the allowed users list!\nThis event has been logged.")
+# 	authenticated = "FAILED to execute" if not authenticated else "SUCCESFULLY executed"
+# 	data = ctx.message.content
+# 	data = f"[{datetime.now()}]{ctx.message.author} :: {authenticated} \"{data}\"\n"
+# 	print(data)
+# 	media.append_file(filename, data)
 
-async def check_perms(ctx):
-	author = ctx.message.author
-	if str(author.id) in allowed_users:
-		log(ctx, True)
-		return True
-	await log(ctx, False)
-	return False
+# async def check_perms(ctx):
+# 	author = ctx.message.author
+# 	if str(author.id) in allowed_users:
+# 		log(ctx, True)
+# 		return True
+# 	await log(ctx, False)
+# 	return False
 
 
-pool = ThreadPool(processes=1)
+# pool = ThreadPool(processes=1)
 credentials = media.read_file("credentials.md", filter=True)
 token = credentials[0]
 allowed_users = credentials[1:]
@@ -49,10 +49,16 @@ bot = commands.Bot(command_prefix=
 	help_command=None, case_insensitive=True)
 
 
-async def send(msg, channel="commands", silent=True):
-	channel = bot.get_channel(channel_id[channel])
-	await channel.send(msg)
-	if not silent: print(msg)
+@bot.event
+async def on_ready():
+	# try:
+	# 	if sys.argv[1]:
+	# 		await send(" ".join(sys.argv[1:]))
+	# 		sys.exit(0)
+	# except IndexError: pass
+	check_logs.start()
+	print(f"{bot.user} successfuly connected!")
+	await set_status("Free Movies on Plex!", discord.Status.online)
 
 @bot.listen("on_message")
 async def on_message(message):
@@ -61,8 +67,9 @@ async def on_message(message):
 		if "--res=" in message.content:
 			forced_resolution = message.content.split("--res=")[1]
 			cfg.write_attempts(int(forced_resolution))
-		threaded_download = pool.apply_async(download.download, (message.content,))
-		result = threaded_download.get()
+		threaded_download = Thread(target=download.download, args=(message.content,))
+		threaded_download.start()
+		# result = threaded_download.get()
 		# print(f"DEBUG: result: {result}\nDEBUG: threaded_download: {threaded_download}")
 		# # result = download(message.content)
 		# if result:
@@ -70,16 +77,10 @@ async def on_message(message):
 		# 	print("DEBUG: Sent result from bot.py to discord")
 		# else: await send("FAILED download!")
 
-@bot.event
-async def on_ready():
-	try:
-		if sys.argv[1]:
-			await send(" ".join(sys.argv[1:]))
-			sys.exit(0)
-	except IndexError: pass
-	check_logs.start()
-	print(f"{bot.user} successfuly connected!")
-	await set_status("Free Movies on Plex!", discord.Status.online)
+async def send(msg, channel="commands", silent=True):
+	channel = bot.get_channel(channel_id[channel])
+	await channel.send(msg)
+	if not silent: print(msg)
 
 async def set_status(activity, status=discord.Status.online):
 	await bot.change_presence(status=status, activity=discord.Game(activity))
@@ -87,9 +88,10 @@ async def set_status(activity, status=discord.Status.online):
 @tasks.loop(seconds=5)
 async def check_logs():
 	log_data = media.read_file("log.txt", filter=True)
-	for message in log_data:
-		await send(message)
-	media.write_file("log.txt", "### Beginning of message buffer from server ###\n")
+	if log_data:
+		for message in log_data:
+			await send(message)
+		media.write_file("log.txt", "### Beginning of message buffer from server ###\n")
 
 @bot.command()
 async def play(ctx, url : str):

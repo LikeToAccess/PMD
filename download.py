@@ -84,13 +84,13 @@ def download(url):
 	make_directory()
 
 	start_time = time()
-	try: stream.download_file(request, absolute_path)
+	try: stream.download_file(request, absolute_path, start_time=start_time)
 	except req.exceptions.ConnectionError:
 		download(url)
 		log("Connection error.")
 		return False
 	except req.exceptions.HTTPError as error: return test_link(url, error=error)
-	file_size = round(size(absolute_path), 2)
+	file_size = round(size(absolute_path)/1024/1024, 2)
 	if file_size == 0: return test_link(url, start_time, resolution)
 	with open(absolute_path, "r") as file:
 		try:
@@ -99,12 +99,14 @@ def download(url):
 				if "403 Forbidden" in line: return test_link(url, start_time, resolution)
 		except UnicodeDecodeError: pass
 	cfg.reset_attempts()
-	final_msg = f"Finished download of {filename} in {quality[int(resolution)]}p ({file_size} MB)."
+	filename = media.format_title(filename)
+	resolution = quality[int(resolution)]
+	final_msg = f"Finished download of {filename} in {resolution}p ({file_size} MB)."
 	print(final_msg)
 	log(final_msg)
 	return final_msg
 
 
-if __name__ == "__main__":
-	if sys.argv[1]: download(sys.argv[1])
-	else: print("No URL specified.")
+# if __name__ == "__main__":
+# 	if sys.argv[1]: download(sys.argv[1])
+# 	else: print("No URL specified.")

@@ -9,6 +9,7 @@ Todo list for the project
  * [ ] Fix concurrent downloads
    * When a new download starts before the first has finished, the quality of the new one will be the same as the first
  * [ ] In-progress downloads should have the .crdownload extension, then be renamed after they complete
+ * [ ] Add a real-time total download bandwidth gauge to the bot activity text
 
 ## Will Do:
  * [ ] Limit simultanious downloads on the server

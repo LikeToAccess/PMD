@@ -14,7 +14,6 @@ import socket
 import os
 from threading import Thread
 import download
-# import bot
 import config as cfg
 
 
@@ -24,8 +23,6 @@ def on_new_user(client, address, host=socket.gethostbyname(socket.gethostname())
 	client.run()
 
 def start_bot():
-	# print("Starting up the Discord Bot...")
-	# bot.run()
 	os.system("python3 bot.py")
 
 
@@ -50,7 +47,6 @@ class Client:
 
 		def recv(self, encoding="utf8"):
 			data = self.client.recv(self.buffer).decode(encoding)
-			# self.client.close()
 			return data
 
 		def run(self):

@@ -1,6 +1,17 @@
+# -*- coding: utf-8 -*-
+# filename          : download.py
+# description       : Handles downloading of movies
+# author            : LikeToAccess
+# email             : liketoaccess@protonmail.com
+# date              : 05-04-2021
+# version           : v1.0
+# usage             : python main.py
+# notes             :
+# license           : MIT
+# py version        : 3.8.2 (must run on 3.6 or higher)
+#==============================================================================
 from time import time
 import os
-# import sys
 import requests as req
 import config as cfg
 import stream
@@ -105,8 +116,3 @@ def download(url):
 	print(final_msg)
 	log(final_msg)
 	return final_msg
-
-
-# if __name__ == "__main__":
-# 	if sys.argv[1]: download(sys.argv[1])
-# 	else: print("No URL specified.")

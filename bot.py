@@ -1,8 +1,17 @@
-# from datetime import datetime
+# -*- coding: utf-8 -*-
+# filename          : bot.py
+# description       : Discord bot interface for interacting with the server
+# author            : LikeToAccess
+# email             : liketoaccess@protonmail.com
+# date              : 05-04-2021
+# version           : v1.0
+# usage             : python main.py
+# notes             :
+# license           : MIT
+# py version        : 3.8.2 (must run on 3.6 or higher)
+#==============================================================================
 import os
-# import sys
 from threading import Thread
-# from multiprocessing.pool import ThreadPool
 import discord
 import youtube_dl
 from discord.ext import commands, tasks
@@ -11,26 +20,6 @@ import media
 import download
 
 
-# async def log(ctx, authenticated, filename="log.txt"):
-# 	if not authenticated:
-# 		await ctx.message.delete()
-# 		await ctx.send(f"*{ctx.author}*, is not in the allowed users list!\nThis event has been logged.")
-# 	authenticated = "FAILED to execute" if not authenticated else "SUCCESFULLY executed"
-# 	data = ctx.message.content
-# 	data = f"[{datetime.now()}]{ctx.message.author} :: {authenticated} \"{data}\"\n"
-# 	print(data)
-# 	media.append_file(filename, data)
-
-# async def check_perms(ctx):
-# 	author = ctx.message.author
-# 	if str(author.id) in allowed_users:
-# 		log(ctx, True)
-# 		return True
-# 	await log(ctx, False)
-# 	return False
-
-
-# pool = ThreadPool(processes=1)
 credentials = media.read_file("credentials.md", filter=True)
 token = credentials[0]
 allowed_users = credentials[1:]
@@ -51,11 +40,6 @@ bot = commands.Bot(command_prefix=
 
 @bot.event
 async def on_ready():
-	# try:
-	# 	if sys.argv[1]:
-	# 		await send(" ".join(sys.argv[1:]))
-	# 		sys.exit(0)
-	# except IndexError: pass
 	check_logs.start()
 	print(f"{bot.user} successfuly connected!")
 	await set_status("Free Movies on Plex!", discord.Status.online)
@@ -69,13 +53,6 @@ async def on_message(message):
 			cfg.write_attempts(int(forced_resolution))
 		threaded_download = Thread(target=download.download, args=(message.content,))
 		threaded_download.start()
-		# result = threaded_download.get()
-		# print(f"DEBUG: result: {result}\nDEBUG: threaded_download: {threaded_download}")
-		# # result = download(message.content)
-		# if result:
-		# 	send(result)
-		# 	print("DEBUG: Sent result from bot.py to discord")
-		# else: await send("FAILED download!")
 
 async def send(msg, channel="commands", silent=True):
 	channel = bot.get_channel(channel_id[channel])
@@ -121,7 +98,6 @@ async def play(ctx, url : str):
 async def join(ctx):
 	voice_channel = discord.utils.get(ctx.guild.voice_channels, name="▶voice-chat")
 	await voice_channel.connect()
-	# voice = discord.utils.get(bot.voice_clients, guild=ctx.guild)
 	await ctx.message.delete()
 	print("Joined \"▶voice-chat\".")
 

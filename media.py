@@ -1,3 +1,15 @@
+# -*- coding: utf-8 -*-
+# filename          : media.py
+# description       : Holds important functions for the project
+# author            : LikeToAccess
+# email             : liketoaccess@protonmail.com
+# date              : 05-04-2021
+# version           : v1.0
+# usage             : python main.py
+# notes             :
+# license           : MIT
+# py version        : 3.8.2 (must run on 3.6 or higher)
+#==============================================================================
 from shutil import move
 import os
 import config as cfg

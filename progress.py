@@ -19,7 +19,7 @@ from media import log
 def file_size(filename, count, start_time=None):
 	size = download.size(filename)
 	size = round(size/1024/1024, 2)
-	if (count+1 % 25 == 0 or count == 4) and start_time:
+	if (count % 50 == 0 or count == 4) and start_time:
 		filename = media.format_title(filename)
 		speed = round(size/(time()-start_time)*8, 2)
 		msg = f"Downloading {filename} at ~{speed} Mbps ({size} MB total)."

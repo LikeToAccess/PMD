@@ -13,6 +13,7 @@ quality = cfg.video_quality
 media_files = media.Media("MOVIES")
 home = os.getcwd()
 req.adapters.HTTPAdapter(max_retries=2)
+start_time = 0
 
 
 def url_format(url, target_res):
@@ -26,7 +27,6 @@ def test_link(url, start_time=0, resolution=0, error=False):
 		if int(resolution) >= len(quality)-1:
 			error = "FAILED (cannot lower quality)\nFailed download, link is invalid."
 			print(error)
-			# os.system(f"python3 bot.py \"{error}\"")
 			log(error)
 			cfg.reset_attempts()
 			return False
@@ -35,17 +35,21 @@ def test_link(url, start_time=0, resolution=0, error=False):
 		download(url)
 		return False
 	print("FAILED (retrying)")
-	# os.system("python3 bot.py FAILED (retrying)")
 	log("FAILED (retrying)")
 	download(url)
 	return False
 
-def size(filename):
-	file_size = os.stat(filename).st_size
-	return file_size
+def make_directory():
+	if media_files.path != "MOVIES":
+		root_path = media_files.path.split("/")[0]
+		if not os.path.isdir(root_path + \
+			f"/{media_files.show_title}"): os.mkdir(root_path + \
+			f"/{media_files.show_title}")
+		if not os.path.isdir(root_path + \
+			f"/{media_files.show_title}/Season {media_files.season}"): os.mkdir(root_path + \
+			f"/{media_files.show_title}/Season {media_files.season}")
 
-def download(url):
-	# os.system(f"python3 bot.py \"{data}"\")
+def check(url):
 	resolution = cfg.read_attempts()
 	try: url = url_format(url, resolution)
 	except IndexError as error:
@@ -57,58 +61,50 @@ def download(url):
 		print("DEBUG: error")
 		filename = False
 	if not filename:
-		error = f"FAILED (download timed out {cfg.timeout}s)\nFailed download, link is invalid."
+		error = "Failed download, link is invalid or has expired."
 		print(error)
-		# os.system(f"python3 bot.py \"{error}\"")
 		log(error)
 		return False
+	return filename, request, resolution
+
+def size(filename):
+	file_size = os.stat(filename).st_size
+	return file_size
+
+def download(url):
+	global start_time
+
+	data = check(url)
+	if not data: return False
+	filename, request, resolution = data
 	msg = f"Atempting download in {quality[int(resolution)]}p..."
 	print(msg, end=" ", flush=True)
-	# os.system(f"python3 bot.py {msg}")
 	log(msg)
-	start_time = time()
-	# print(f"DEBUG: {request.headers}")
-	# print(f"DEBUG: {request}, {filename}, {media_files.path}, {url}")
 	absolute_path = f"{media_files.path}/{filename}"
-	if media_files.path != "MOVIES":
-		root_path = media_files.path.split("/")[0]
-		if not os.path.isdir(root_path + \
-			f"/{media_files.show_title}"): os.mkdir(root_path + \
-			f"/{media_files.show_title}")
-		if not os.path.isdir(root_path + \
-			f"/{media_files.show_title}/Season {media_files.season}"): os.mkdir(root_path + \
-			f"/{media_files.show_title}/Season {media_files.season}")
+	make_directory()
 
+	start_time = time()
 	try: stream.download_file(request, absolute_path)
 	except req.exceptions.ConnectionError:
 		download(url)
-		# os.system("python3 bot.py Error Unknown")
-		log("Error Unknown")
+		log("Connection error.")
 		return False
-	except req.exceptions.HTTPError as error:
-		return test_link(url, error=error)
-	file_size = size(absolute_path)
-	if file_size == 0:
-		return test_link(url, start_time, resolution)
+	except req.exceptions.HTTPError as error: return test_link(url, error=error)
+	file_size = round(size(absolute_path), 2)
+	if file_size == 0: return test_link(url, start_time, resolution)
 	with open(absolute_path, "r") as file:
 		try:
 			for count, line in enumerate(file):
-				if count > 20:
-					break
-				if "403 Forbidden" in line:
-					return test_link(url, start_time, resolution)
-		except UnicodeDecodeError:
-			pass
+				if count > 20: break
+				if "403 Forbidden" in line: return test_link(url, start_time, resolution)
+		except UnicodeDecodeError: pass
 	cfg.reset_attempts()
-	final_msg = f"Finished download of {absolute_path} in {quality[int(resolution)]}p ({size(absolute_path)/1024/1024} MB.)"
+	final_msg = f"Finished download of {filename} in {quality[int(resolution)]}p ({file_size} MB)."
 	print(final_msg)
-	# os.system(f"python3 bot.py \"{final_msg}\"")
 	log(final_msg)
 	return final_msg
 
 
 if __name__ == "__main__":
-	if sys.argv[1]:
-		download(sys.argv[1])
-	else:
-		print("No URL specified.")
+	if sys.argv[1]: download(sys.argv[1])
+	else: print("No URL specified.")

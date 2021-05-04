@@ -7,9 +7,9 @@ import socket
 #
 local_server_address = socket.gethostbyname(socket.gethostname())
 # local_server_address = "192.168.123.1"
-# remote_server_address = "127.0.0.1"
+remote_server_address = "127.0.0.1"
 # remote_server_address = "192.168.50.209"
-remote_server_address = "plexserver.ga"
+# remote_server_address = "plexserver.ga"
 server_port = 26490
 network_buffer = 1024
 max_connections = 5

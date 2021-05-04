@@ -65,7 +65,7 @@ def check(url):
 	try: url = url_format(url, resolution)
 	except IndexError as error:
 		return test_link(url, resolution=resolution, error=error)
-	try: filename = media_files.rename(url.split("?name=")[1].split("&token=ip=")[0]+".mp4")
+	try: filename = media_files.rename(url.split("?name=")[1].split("&token=ip=")[0]+".crdownload")
 	except IndexError: filename = False
 	try: request = req.get(url, headers=headers, stream=True, timeout=(cfg.timeout/2,cfg.timeout))
 	except (req.exceptions.ConnectionError, req.exceptions.InvalidURL, req.exceptions.ReadTimeout):
@@ -110,6 +110,7 @@ def download(url):
 				if "403 Forbidden" in line: return test_link(url, start_time, resolution)
 		except UnicodeDecodeError: pass
 	cfg.reset_attempts()
+	media.rename(absolute_path, absolute_path.replace(".crdownload",".mp4"))
 	filename = media.format_title(filename)
 	resolution = quality[int(resolution)]
 	final_msg = f"Finished download of {filename} in {resolution}p ({file_size} MB)."

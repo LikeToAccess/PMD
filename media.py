@@ -110,7 +110,7 @@ class Media:
 						.replace("_", "")          \
 						.split(".")[0]             \
 						.strip()
-			return filename + ".mp4"
+			return filename + ".crdownload"
 		except IndexError:
 			pass
 		return False

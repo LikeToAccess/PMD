@@ -6,6 +6,8 @@ Todo list for the project
  * [ ] Move contents of TODO.md into Github Projects tab
  * [x] If the movie failed to download, lower the resolution and try again
  * [x] Automatically download files with HTTP GET requests
+ * [ ] Fix concurrent downloads
+   * When a new download starts before the first has finished, the quality of the new one will be the same as the first
 
 ## Will Do:
  * [ ] Limit simultanious downloads on the server

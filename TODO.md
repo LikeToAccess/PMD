@@ -4,7 +4,7 @@ Todo list for the project
 
 ## Priority:
  * [ ] Move contents of TODO.md into Github Projects tab
- * [ ] If the movie failed to download, lower the resolution and try again
+ * [x] If the movie failed to download, lower the resolution and try again
  * [x] Automatically download files with HTTP GET requests
 
 ## Will Do:
@@ -12,9 +12,9 @@ Todo list for the project
  * [ ] Send feedback on the overall progress of downloads back to the client
  * [x] Create a robust server to handle multiple client connections
  * [ ] Fix *client.py* to not be so bad
- * [ ] Set up *server.py* as the server-side for active deployment
+ * [x] Set up *server.py* as the server-side for active deployment
  * [ ] Create a binary executable for the client
- * [ ] Integrate the client into the Discord bot for contributers to have easy access
+ * [x] Integrate the client into the Discord bot for contributers to have easy access
  	* Networking is not needed as both programs will be running on the same system
  * [ ] Prevent the client from connecting unless their Discord can be verified
  	* The bot will DM a one-time code to authenticate the Discord tag entered is real and is permitted to connect
@@ -24,7 +24,7 @@ Todo list for the project
  	* Assign a score/reward to a user for uploading a movie
  		* Scores will be used for later
  		* Add the propper scores to people who have uploaded prior to this functionality being implemented
- * [ ] Fully merge this project with the *Plex* Discord bot project
+ * [x] Fully merge this project with the *Plex* Discord bot project
  	* The name will be changed to *Plex Bot* for everything
 
 ## Experimental Ideas:

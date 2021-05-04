@@ -3,6 +3,9 @@ import os
 import config as cfg
 
 
+def log(msg):
+	append_file("log.txt", msg)
+
 def rename(filename_old, filename_new):
 	filename = filename_new.split(".")
 	filename_new = f"{filename[0].strip()}.{filename[1]}"
@@ -33,7 +36,7 @@ def write_file(filename, msg):
 
 def append_file(filename, msg):
 	with open(filename, "a") as file:
-		file.write(msg)
+		file.write(f"{msg}\n")
 
 def filter_list(lines, filename=False):
 	if filename:

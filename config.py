@@ -18,7 +18,7 @@ max_connections = 5
 #
 # [DOWNLOAD OPTIONS]
 #
-download_attempts = 0
+download_attempts = 3
 user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
 video_quality = [2160, 1440, 1080, 720, 480, 360]
 # video_quality = [2160, 360]
@@ -53,6 +53,17 @@ def increment_attempts():
 	for line in lines:
 		if line[:20] == "download_attempts = ":
 			line = f"download_attempts = {int(line[20:])+1}"
+		buffer.append(line)
+	with open("config.py", "w") as file:
+		file.write("\n".join(buffer))
+
+def write_attempts(count):
+	buffer = []
+	with open("config.py", "r") as file:
+		lines = file.read().split("\n")
+	for line in lines:
+		if line[:20] == "download_attempts = ":
+			line = f"download_attempts = {count}"
 		buffer.append(line)
 	with open("config.py", "w") as file:
 		file.write("\n".join(buffer))

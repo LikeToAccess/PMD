@@ -1,6 +1,7 @@
 import os
 import config as cfg
 import progress
+from media import log
 
 
 headers = {"user-agent": cfg.user_agent}
@@ -9,10 +10,11 @@ headers = {"user-agent": cfg.user_agent}
 def download_file(request, filename="MOVIE.mp4", chunk_size=cfg.stream_chunk_size):
 	with request as r:
 		r.raise_for_status()
-		with open(filename, 'wb') as file:
+		with open(filename, "wb") as file:
 			msg = "IN-PROGRESS"
 			print(msg)
-			os.system(f"python3 bot.py {msg}")
+			# os.system(f"python3 bot.py {msg}")
+			log(msg)
 			for count, chunk in enumerate(request.iter_content(chunk_size=chunk_size)):
 				file.write(chunk)
 				progress.file_size(filename, count)

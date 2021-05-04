@@ -5,6 +5,7 @@ import requests as req
 import config as cfg
 import stream
 import media
+from media import log
 
 
 headers = {"user-agent": cfg.user_agent}
@@ -25,7 +26,8 @@ def test_link(url, start_time=0, resolution=0, error=False):
 		if int(resolution) >= len(quality)-1:
 			error = "FAILED (cannot lower quality)\nFailed download, link is invalid."
 			print(error)
-			os.system(f"python3 bot.py \"{error}\"")
+			# os.system(f"python3 bot.py \"{error}\"")
+			log(error)
 			cfg.reset_attempts()
 			return False
 		cfg.increment_attempts()
@@ -33,7 +35,8 @@ def test_link(url, start_time=0, resolution=0, error=False):
 		download(url)
 		return False
 	print("FAILED (retrying)")
-	os.system("python3 bot.py FAILED (retrying)")
+	# os.system("python3 bot.py FAILED (retrying)")
+	log("FAILED (retrying)")
 	download(url)
 	return False
 
@@ -56,11 +59,13 @@ def download(url):
 	if not filename:
 		error = f"FAILED (download timed out {cfg.timeout}s)\nFailed download, link is invalid."
 		print(error)
-		os.system(f"python3 bot.py \"{error}\"")
+		# os.system(f"python3 bot.py \"{error}\"")
+		log(error)
 		return False
 	msg = f"Atempting download in {quality[int(resolution)]}p..."
 	print(msg, end=" ", flush=True)
-	os.system(f"python3 bot.py {msg}")
+	# os.system(f"python3 bot.py {msg}")
+	log(msg)
 	start_time = time()
 	# print(f"DEBUG: {request.headers}")
 	# print(f"DEBUG: {request}, {filename}, {media_files.path}, {url}")
@@ -77,7 +82,8 @@ def download(url):
 	try: stream.download_file(request, absolute_path)
 	except req.exceptions.ConnectionError:
 		download(url)
-		os.system("python3 bot.py Error Unknown")
+		# os.system("python3 bot.py Error Unknown")
+		log("Error Unknown")
 		return False
 	except req.exceptions.HTTPError as error:
 		return test_link(url, error=error)
@@ -96,7 +102,8 @@ def download(url):
 	cfg.reset_attempts()
 	final_msg = f"Finished download of {absolute_path} in {quality[int(resolution)]}p ({size(absolute_path)/1024/1024} MB.)"
 	print(final_msg)
-	os.system(f"python3 bot.py \"{final_msg}\"")
+	# os.system(f"python3 bot.py \"{final_msg}\"")
+	log(final_msg)
 	return final_msg
 
 

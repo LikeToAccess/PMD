@@ -5,6 +5,7 @@ import sys
 from multiprocessing.pool import ThreadPool
 import discord
 import youtube_dl
+import config as cfg
 from discord.ext import commands, tasks
 import media
 import download
@@ -57,6 +58,9 @@ async def send(msg, channel="commands", silent=True):
 async def on_message(message):
 	if message.content.startswith("https://"):
 		await send("Testing link...", silent=False)
+		if "--res=" in message.content:
+			forced_resolution = message.content.split("--res=")[1]
+			cfg.write_attempts(int(forced_resolution))
 		threaded_download = pool.apply_async(download.download, (message.content,))
 		result = threaded_download.get()
 		# print(f"DEBUG: result: {result}\nDEBUG: threaded_download: {threaded_download}")
@@ -71,21 +75,21 @@ async def on_ready():
 	try:
 		if sys.argv[1]:
 			await send(" ".join(sys.argv[1:]))
-			quit()
+			sys.exit(0)
 	except IndexError: pass
+	check_logs.start()
 	print(f"{bot.user} successfuly connected!")
 	await set_status("Free Movies on Plex!", discord.Status.online)
 
 async def set_status(activity, status=discord.Status.online):
 	await bot.change_presence(status=status, activity=discord.Game(activity))
 
-# @tasks.loop(seconds=20)
-# async def looped_status(activity, status):
-# 	# status = discord.Status.idle
-# 	# status = discord.Status.online
-# 	# status = discord.Status.dnd
-# 	pass
-
+@tasks.loop(seconds=5)
+async def check_logs():
+	log_data = media.read_file("log.txt", filter=True)
+	for message in log_data:
+		await send(message)
+	media.write_file("log.txt", "### Beginning of message buffer from server ###\n")
 
 @bot.command()
 async def play(ctx, url : str):

@@ -10,6 +10,7 @@ MUSIC/
 
 # CREDENTIALS
 credentials.md
+log.txt
 
 # C extensions
 *.so

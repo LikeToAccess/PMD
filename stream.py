@@ -25,6 +25,7 @@ def download_file(request, filename="MOVIE.mp4", chunk_size=cfg.stream_chunk_siz
 			msg = "IN-PROGRESS"
 			print(msg)
 			log(msg)
+			cfg.reset_attempts()
 			for count, chunk in enumerate(request.iter_content(chunk_size=chunk_size)):
 				file.write(chunk)
 				progress.file_size(filename, count, start_time=start_time)

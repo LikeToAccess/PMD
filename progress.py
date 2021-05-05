@@ -25,4 +25,5 @@ def file_size(filename, count, start_time=None):
 		msg = f"Downloading {filename} at ~{speed} Mbps ({size} MB total)."
 		print(msg)
 		log(msg)
+
 	return size

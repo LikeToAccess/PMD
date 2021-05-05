@@ -46,7 +46,7 @@ async def on_ready():
 
 @bot.listen("on_message")
 async def on_message(message):
-	if message.content.startswith("https://"):
+	if message.content.startswith("https://") and message.channel.id == channel_id["commands"]:
 		await send("Testing link...", silent=False)
 		if "--res=" in message.content:
 			forced_resolution = message.content.split("--res=")[1]

@@ -116,4 +116,5 @@ def download(url):
 	final_msg = f"Finished download of {filename} in {resolution}p ({file_size} MB)."
 	print(final_msg)
 	log(final_msg)
+
 	return final_msg

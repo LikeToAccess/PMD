@@ -18,6 +18,10 @@ import config as cfg
 def log(msg):
 	append_file("log.txt", msg)
 
+def credit(author, filename, resolution, file_size):
+	msg = f"{filename}|{resolution}|{file_size}"
+	append_file(f"{author}.txt", msg)
+
 def format_title(filename):
 	if "/" in filename: filename = filename.split("/")[::-1][0]
 	filename = " ".join([word.capitalize() for word in filename.split(".")[0].split()])
@@ -26,7 +30,8 @@ def format_title(filename):
 def rename(filename_old, filename_new):
 	filename = filename_new.split(".")
 	filename_new = f"{filename[0].strip()}.{filename[1]}"
-	os.rename(filename_old, filename_new)
+	try: os.rename(filename_old, filename_new)
+	except FileExistsError: return False
 	return f"RENAME: {filename_old} -> {filename_new}"
 
 def needs_formating(filename):

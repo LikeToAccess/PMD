@@ -33,7 +33,7 @@ def url_format(url, target_res):
 		url = url.replace(f"_{current_res}&token=ip=",f"_{quality[int(target_res)]}&token=ip=")
 	return url
 
-def test_link(url, start_time=0, resolution=0, error=False):
+def test_link(url, author, start_time=0, resolution=0, error=False):
 	if ((time() - start_time) < 10) or error:
 		if int(resolution) >= len(quality)-1:
 			error = "FAILED (cannot lower quality)\nFailed download, link is invalid."
@@ -43,11 +43,11 @@ def test_link(url, start_time=0, resolution=0, error=False):
 			return False
 		cfg.increment_attempts()
 		print("FAILED (lowering quality)")
-		download(url)
+		download(url, author=author)
 		return False
 	print("FAILED (retrying)")
 	log("FAILED (retrying)")
-	download(url)
+	download(url, author=author)
 	return False
 
 def make_directory():
@@ -60,11 +60,11 @@ def make_directory():
 			f"/{media_files.show_title}/Season {media_files.season}"): os.mkdir(root_path + \
 			f"/{media_files.show_title}/Season {media_files.season}")
 
-def check(url):
+def check(url, author):
 	resolution = cfg.read_attempts()
 	try: url = url_format(url, resolution)
 	except IndexError as error:
-		return test_link(url, resolution=resolution, error=error)
+		return test_link(url, author=author, resolution=resolution, error=error)
 	try: filename = media_files.rename(url.split("?name=")[1].split("&token=ip=")[0]+".crdownload")
 	except IndexError: filename = False
 	try: request = req.get(url, headers=headers, stream=True, timeout=(cfg.timeout/2,cfg.timeout))
@@ -82,10 +82,10 @@ def size(filename):
 	file_size = os.stat(filename).st_size
 	return file_size
 
-def download(url):
+def download(url, author):
 	global start_time
 
-	data = check(url)
+	data = check(url, author=author)
 	if not data: return False
 	filename, request, resolution = data
 	msg = f"Atempting download in {quality[int(resolution)]}p..."
@@ -97,10 +97,10 @@ def download(url):
 	start_time = time()
 	try: stream.download_file(request, absolute_path, start_time=start_time)
 	except (req.exceptions.ConnectionError, ConnectionResetError, req.exceptions.ChunkedEncodingError):
-		download(url)
+		download(url, author=author)
 		log("Connection error.")
 		return False
-	except req.exceptions.HTTPError as error: return test_link(url, error=error)
+	except req.exceptions.HTTPError as error: return test_link(url, author=author, error=error)
 	file_size = round(size(absolute_path)/1024/1024, 2)
 	if file_size == 0: return test_link(url, start_time, resolution)
 	with open(absolute_path, "r") as file:
@@ -110,10 +110,14 @@ def download(url):
 				if "403 Forbidden" in line: return test_link(url, start_time, resolution)
 		except UnicodeDecodeError: pass
 	cfg.reset_attempts()
-	media.rename(absolute_path, absolute_path.replace(".crdownload",".mp4"))
 	filename = media.format_title(filename)
 	resolution = quality[int(resolution)]
-	final_msg = f"Finished download of {filename} in {resolution}p ({file_size} MB)."
+	complete = media.rename(absolute_path, absolute_path.replace(".crdownload",".mp4"))
+	if not complete:
+		final_msg = f"Error while finishing {filename}, that file already exists.\nCould not complete."
+	else:
+		final_msg = f"Finished download of {filename} in {resolution}p ({file_size} MB)."
+		media.credit(author, filename=filename, resolution=resolution, file_size=file_size)
 	print(final_msg)
 	log(final_msg)
 

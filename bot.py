@@ -51,7 +51,8 @@ async def on_message(message):
 		if "--res=" in message.content:
 			forced_resolution = message.content.split("--res=")[1]
 			cfg.write_attempts(int(forced_resolution))
-		threaded_download = Thread(target=download.download, args=(message.content,))
+		author = message.author.id
+		threaded_download = Thread(target=download.download, args=(message.content,author))
 		threaded_download.start()
 
 async def send(msg, channel="commands", silent=True):

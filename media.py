@@ -27,11 +27,19 @@ def format_title(filename):
 	filename = " ".join([word.capitalize() for word in filename.split(".")[0].split()])
 	return filename
 
+def remove_file(filename):
+	os.remove(filename)
+
 def rename(filename_old, filename_new):
 	filename = filename_new.split(".")
 	filename_new = f"{filename[0].strip()}.{filename[1]}"
 	try: os.rename(filename_old, filename_new)
-	except FileExistsError: return False
+	except FileExistsError:
+		remove_file(filename_old)
+		msg = f"Removed old version of show to be replaced with new version, {filename_new}"
+		print(msg)
+		log(msg)
+		rename(filename_old, filename_new)
 	return f"RENAME: {filename_old} -> {filename_new}"
 
 def needs_formating(filename):

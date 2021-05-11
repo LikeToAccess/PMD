@@ -33,20 +33,22 @@ def url_format(url, target_res):
 		url = url.replace(f"_{current_res}&token=ip=",f"_{quality[int(target_res)]}&token=ip=")
 	return url
 
-def test_link(url, author, start_time=0, resolution=0, error=False):
-	if ((time() - start_time) < 10) or error:
+def test_link(url, author, start_time=0, resolution=0, filename=False, error=False):
+	if filename: filename = media.format_title(filename)
+	if ((time()-start_time) < 10) or error:
 		if int(resolution) >= len(quality)-1:
-			error = "FAILED (cannot lower quality)\nFailed download, link is invalid."
+			error = f"Failed download of {filename if filename else url}, link is invalid."
 			print(error)
 			log(error)
 			cfg.reset_attempts()
 			return False
 		cfg.increment_attempts()
-		print("FAILED (lowering quality)")
+		# print("FAILED (lowering quality)")
 		download(url, author=author)
 		return False
-	print("FAILED (retrying)")
-	log("FAILED (retrying)")
+	error = f"Failed download of {filename if filename else url}, retrying..."
+	print(error)
+	log(error)
 	download(url, author=author)
 	return False
 
@@ -66,13 +68,15 @@ def check(url, author):
 	except IndexError as error:
 		return test_link(url, author=author, resolution=resolution, error=error)
 	try: filename = media_files.rename(url.split("?name=")[1].split("&token=ip=")[0]+".crdownload")
-	except IndexError: filename = False
+	except IndexError:
+		filename = False
+		error = "This link does not go to a supported site!"
 	try: request = req.get(url, headers=headers, stream=True, timeout=(cfg.timeout/2,cfg.timeout))
 	except (req.exceptions.ConnectionError, req.exceptions.InvalidURL, req.exceptions.ReadTimeout):
 		print("DEBUG: error")
+		error = f"Connection error with {media.format_title(filename)}."
 		filename = False
 	if not filename:
-		error = "Failed download, link is invalid or has expired."
 		print(error)
 		log(error)
 		return False
@@ -88,17 +92,17 @@ def download(url, author):
 	data = check(url, author=author)
 	if not data: return False
 	filename, request, resolution = data
-	msg = f"Atempting download in {quality[int(resolution)]}p..."
-	print(msg, end=" ", flush=True)
-	log(msg)
+	# msg = f"Atempting download in {quality[int(resolution)]}p..."
+	# print(msg, end=" ", flush=True)
+	# log(msg)
 	absolute_path = f"{media_files.path}/{filename}"
 	make_directory()
 
 	start_time = time()
-	try: stream.download_file(request, absolute_path, start_time=start_time)
+	try: stream.download_file(request, absolute_path, resolution, start_time=start_time)
 	except (req.exceptions.ConnectionError, ConnectionResetError, req.exceptions.ChunkedEncodingError):
 		download(url, author=author)
-		log("Connection error.")
+		log(f"Connection error while downloading {media.format_title(filename)}.")
 		return False
 	except req.exceptions.HTTPError as error: return test_link(url, author=author, error=error)
 	file_size = round(size(absolute_path)/1024/1024, 2)

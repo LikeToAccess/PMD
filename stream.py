@@ -13,20 +13,24 @@
 import config as cfg
 import progress
 from media import log
+import media
 
 
 headers = {"user-agent": cfg.user_agent}
+quality = cfg.video_quality
 
 
-def download_file(request, filename="MOVIE.mp4", chunk_size=cfg.stream_chunk_size, start_time=None):
+def download_file(request, filename, resolution, chunk_size=cfg.stream_chunk_size, start_time=None):
+	resolution = quality[int(resolution)]
 	with request as r:
 		r.raise_for_status()
 		with open(filename, "wb") as file:
-			msg = "IN-PROGRESS"
+			msg = f"Downloading {media.format_title(filename)} in {resolution}p..."
 			print(msg)
 			log(msg)
 			cfg.reset_attempts()
 			for count, chunk in enumerate(request.iter_content(chunk_size=chunk_size)):
 				file.write(chunk)
 				progress.file_size(filename, count, start_time=start_time)
+
 	return filename

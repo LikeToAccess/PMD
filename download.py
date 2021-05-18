@@ -95,6 +95,8 @@ def download(url, author):
 	# msg = f"Atempting download in {quality[int(resolution)]}p..."
 	# print(msg, end=" ", flush=True)
 	# log(msg)
+	target_size = request.headers.get("content-length", 0)
+	rounded_target_size = round(int(target_size)/1024/1024,2)
 	absolute_path = f"{media_files.path}/{filename}"
 	make_directory()
 
@@ -117,8 +119,16 @@ def download(url, author):
 	filename = media.format_title(filename)
 	resolution = quality[int(resolution)]
 	complete = media.rename(absolute_path, absolute_path.replace(".crdownload",".mp4"))
+	absolute_path = absolute_path.replace(".crdownload", ".mp4")
 	if not complete:
 		final_msg = f"Error while finishing {filename}, that file already exists.\nCould not complete."
+	elif file_size != rounded_target_size:
+		msg = f"{file_size}/{rounded_target_size} MB"
+		msg = f"Error while downloading {filename}, incomplete file ({msg}).\nRestarting download..."
+		print(msg)
+		log(msg)
+		download(url, author=author)
+		return False
 	else:
 		final_msg = f"Finished download of {filename} in {resolution}p ({file_size} MB)."
 		media.credit(author, filename=filename, resolution=resolution, file_size=file_size)

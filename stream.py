@@ -21,16 +21,19 @@ quality = cfg.video_quality
 
 
 def download_file(request, filename, resolution, chunk_size=cfg.stream_chunk_size, start_time=None):
+	target_size = request.headers.get("content-length", 0)
+	# log(f"DEBUG: Target Size is {target_size}.")
 	resolution = quality[int(resolution)]
 	with request as r:
 		r.raise_for_status()
 		with open(filename, "wb") as file:
-			msg = f"Downloading {media.format_title(filename)} in {resolution}p..."
+			title = media.format_title(filename)
+			msg = f"Downloading {title} in {resolution}p ({round(int(target_size)/1024/1024,2)} MB)..."
 			print(msg)
 			log(msg)
 			cfg.reset_attempts()
 			for count, chunk in enumerate(request.iter_content(chunk_size=chunk_size)):
 				file.write(chunk)
-				progress.file_size(filename, count, start_time=start_time)
+				progress.file_size(filename, count, start_time=start_time, target_size=target_size)
 
 	return filename

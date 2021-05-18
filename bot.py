@@ -72,6 +72,20 @@ async def check_logs():
 		media.write_file("log.txt", "### Beginning of message buffer from server ###\n")
 
 @bot.command()
+async def downloads(ctx, user: discord.User, *flags):
+	total_size = 0  # This is in MB
+	movies = []
+	user_id = user.id
+	lines = media.read_file(f"{user_id}.txt", filter=True)
+	for line in lines:
+		line = line.split("|")
+		movies.append(line[0])
+		total_size += float(line[2])
+	if "--list" in flags:
+		await send("{}".format("\n".join(movies)))
+	await send(f"{user.display_name} has downloaded {len(movies)} movies totaling {total_size} MB.")
+
+@bot.command()
 async def play(ctx, url : str):
 	await join(ctx)
 	home = os.getcwd()

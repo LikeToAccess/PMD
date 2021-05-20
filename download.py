@@ -118,11 +118,7 @@ def download(url, author):
 	cfg.reset_attempts()
 	filename = media.format_title(filename)
 	resolution = quality[int(resolution)]
-	complete = media.rename(absolute_path, absolute_path.replace(".crdownload",".mp4"))
-	absolute_path = absolute_path.replace(".crdownload", ".mp4")
-	if not complete:
-		final_msg = f"Error while finishing {filename}, that file already exists.\nCould not complete."
-	elif file_size != rounded_target_size:
+	if file_size != rounded_target_size:
 		msg = f"{file_size}/{rounded_target_size} MB"
 		msg = f"Error while downloading {filename}, incomplete file ({msg}).\nRestarting download..."
 		print(msg)
@@ -132,6 +128,10 @@ def download(url, author):
 	else:
 		final_msg = f"Finished download of {filename} in {resolution}p ({file_size} MB)."
 		media.credit(author, filename=filename, resolution=resolution, file_size=file_size)
+	complete = media.rename(absolute_path, absolute_path.replace(".crdownload",".mp4"))
+	absolute_path = absolute_path.replace(".crdownload", ".mp4")
+	if not complete:
+		final_msg = f"Error while finishing {filename}, that file already exists.\nCould not complete."
 	print(final_msg)
 	log(final_msg)
 

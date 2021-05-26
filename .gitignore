@@ -12,6 +12,7 @@ MUSIC/
 credentials.md
 log.txt
 .DS_store
+*.txt
 
 # C extensions
 *.so

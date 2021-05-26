@@ -15,6 +15,7 @@ from threading import Thread
 import discord
 import youtube_dl
 from discord.ext import commands, tasks
+from scraper import Scraper
 import config as cfg
 import media
 import download
@@ -26,6 +27,7 @@ allowed_users = credentials[1:]
 channel_id = {
 	"commands": 776367990560129066,
 	"log": 776354053222826004,
+	"spam": 780948981299150888,
 }
 bot = commands.Bot(command_prefix=
 	[
@@ -52,7 +54,13 @@ async def on_message(message):
 			forced_resolution = message.content.split("--res=")[1]
 			cfg.write_attempts(int(forced_resolution))
 		author = message.author.id
-		threaded_download = Thread(target=download.download, args=(message.content,author))
+		link = message.content
+		if not link[:36] == "https://stream-1-1-ip4.loadshare.org":
+			if not link[-21:] == "-online-for-free.html":
+				link = link + "-online-for-free.html"
+			scraper = Scraper(link)
+			link = scraper.run()
+		threaded_download = Thread(target=download.download, args=(link,author))
 		threaded_download.start()
 
 async def send(msg, channel="commands", silent=True):
@@ -68,7 +76,11 @@ async def check_logs():
 	log_data = media.read_file("log.txt", filter=True)
 	if log_data:
 		for message in log_data:
-			await send(message)
+			if "--channel=" in message:
+				message = message.split(" --channel=")
+				await send(message[0], channel=message[1])
+			else:
+				await send(message)
 		media.write_file("log.txt", "### Beginning of message buffer from server ###\n")
 
 @bot.command()

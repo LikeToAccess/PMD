@@ -95,7 +95,7 @@ async def downloads(ctx, user: discord.User, *flags):
 		total_size += float(line[2])
 	if "--list" in flags:
 		await send("{}".format("\n".join(movies)))
-	await send(f"{user.display_name} has downloaded {len(movies)} movies totaling {total_size} MB.")
+	await send(f"{user.display_name} has downloaded {len(movies)} movies/episodes totaling {round(total_size,0)} MB.")
 
 @bot.command()
 async def play(ctx, url : str):

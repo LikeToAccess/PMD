@@ -15,4 +15,4 @@ Plex Media Downloader (now merged with *Plex Bot*)
  * WINDOWS/MAC BINARY:
  	* For deeper integration and further automation, this is the way to go
  	* With more automation, things like automatically reading data directly from the browser become possible, you won't even need to open the Chrome Developer Menu (Inspect Element)
- 		* [ ] Coming soon, either an advanced web scraper, or a websocket proxy
+ 		* [x] Done, add web scraper to the server

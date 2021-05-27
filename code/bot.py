@@ -15,7 +15,6 @@ from threading import Thread
 import discord
 import youtube_dl
 from discord.ext import commands, tasks
-from scraper import Scraper
 import config as cfg
 import media
 import download
@@ -55,11 +54,6 @@ async def on_message(message):
 			cfg.write_attempts(int(forced_resolution))
 		author = message.author.id
 		link = message.content
-		if not link[:36] == "https://stream-1-1-ip4.loadshare.org":
-			if not link[-21:] == "-online-for-free.html":
-				link = link + "-online-for-free.html"
-			scraper = Scraper(link)
-			link = scraper.run()
 		threaded_download = Thread(target=download.download, args=(link,author))
 		threaded_download.start()
 

@@ -12,6 +12,7 @@
 #==============================================================================
 from time import time
 import os
+from scraper import Scraper
 import requests as req
 import config as cfg
 import stream
@@ -46,7 +47,7 @@ def test_link(url, author, start_time=0, resolution=0, filename=False, error=Fal
 		# print("FAILED (lowering quality)")
 		download(url, author=author)
 		return False
-	error = f"Failed download of {filename if filename else url}, retrying..."
+	error = f"Failed download of {filename if filename else url}.\nRestarting download..."
 	print(error)
 	log(error)
 	download(url, author=author)
@@ -62,11 +63,11 @@ def make_directory():
 			f"/{media_files.show_title}/Season {media_files.season}"): os.mkdir(root_path + \
 			f"/{media_files.show_title}/Season {media_files.season}")
 
-def check(url, author):
+def check(url, base_url, author):
 	resolution = cfg.read_attempts()
 	try: url = url_format(url, resolution)
 	except IndexError as error:
-		return test_link(url, author=author, resolution=resolution, error=error)
+		return test_link(base_url if base_url else url, author=author, resolution=resolution, error=error)
 	try: filename = media_files.rename(url.split("?name=")[1].split("&token=ip=")[0]+".crdownload")
 	except IndexError:
 		filename = False
@@ -89,7 +90,15 @@ def size(filename):
 def download(url, author):
 	global start_time
 
-	data = check(url, author=author)
+	base_url = None
+	if not url[:36] == "https://stream-1-1-ip4.loadshare.org":
+		if not url[-21:] == "-online-for-free.html":
+			url = url + "-online-for-free.html"
+		scraper = Scraper(url)
+		base_url = url
+		url = scraper.run()
+
+	data = check(url, base_url, author=author)
 	if not data: return False
 	filename, request, resolution = data
 	# msg = f"Atempting download in {quality[int(resolution)]}p..."
@@ -103,17 +112,17 @@ def download(url, author):
 	start_time = time()
 	try: stream.download_file(request, absolute_path, resolution, start_time=start_time)
 	except (req.exceptions.ConnectionError, ConnectionResetError, req.exceptions.ChunkedEncodingError):
-		download(url, author=author)
-		log(f"Connection error while downloading {media.format_title(filename)}.")
+		log(f"Connection error while downloading {media.format_title(filename)}.\nRestarting download...")
+		download(base_url if base_url else url, author=author)
 		return False
-	except req.exceptions.HTTPError as error: return test_link(url, author=author, error=error)
+	except req.exceptions.HTTPError as error: return test_link(base_url if base_url else url, author=author, error=error)
 	file_size = round(size(absolute_path)/1024/1024, 2)
-	if file_size == 0: return test_link(url, start_time, resolution)
+	if file_size == 0: return test_link(base_url if base_url else url, start_time, resolution)
 	with open(absolute_path, "r") as file:
 		try:
 			for count, line in enumerate(file):
 				if count > 20: break
-				if "403 Forbidden" in line: return test_link(url, start_time, resolution)
+				if "403 Forbidden" in line: return test_link(base_url if base_url else url, start_time, resolution)
 		except UnicodeDecodeError: pass
 	cfg.reset_attempts()
 	filename = media.format_title(filename)
@@ -123,7 +132,7 @@ def download(url, author):
 		msg = f"Error while downloading {filename}, incomplete file ({msg}).\nRestarting download..."
 		print(msg)
 		log(msg)
-		download(url, author=author)
+		download(base_url if base_url else url, author=author)
 		return False
 	else:
 		final_msg = f"Finished download of {filename} in {resolution}p ({file_size} MB)."

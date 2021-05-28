@@ -98,8 +98,11 @@ def download(url, author):
 		base_url = url
 		url = scraper.run()
 
-	data = check(url, base_url, author=author)
-	if not data: return False
+	data = check(url, base_url, author=author) if url else url
+	if not data:
+		print("This link does not go to a supported site!")
+		log("This link does not go to a supported site!")
+		return False
 	filename, request, resolution = data
 	# msg = f"Atempting download in {quality[int(resolution)]}p..."
 	# print(msg, end=" ", flush=True)

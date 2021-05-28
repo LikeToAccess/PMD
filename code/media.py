@@ -28,7 +28,11 @@ def format_title(filename):
 	return filename
 
 def remove_file(filename):
-	os.remove(filename)
+	try:
+		os.remove(filename)
+		return True
+	except OSError:
+		return False
 
 def rename(filename_old, filename_new):
 	filename = filename_new.split(".")

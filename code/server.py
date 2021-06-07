@@ -23,7 +23,7 @@ def on_new_user(client, address, host=socket.gethostbyname(socket.gethostname())
 	client.run()
 
 def start_bot():
-	os.system("python bot.py")
+	os.system("python3 bot.py")
 
 
 class Client:

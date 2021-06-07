@@ -100,8 +100,9 @@ def download(url, author):
 
 	data = check(url, base_url, author=author) if url else url
 	if not data:
-		print("This link does not go to a supported site!")
-		log("This link does not go to a supported site!")
+		error = "Scraping failed. Link is invalid or captcha was not solved."
+		print(error)
+		log(error)
 		return False
 	filename, request, resolution = data
 	# msg = f"Atempting download in {quality[int(resolution)]}p..."

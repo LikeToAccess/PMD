@@ -13,6 +13,8 @@ credentials.md
 log.txt
 .DS_store
 *.txt
+captcha.png
+captcha_cropped.png
 
 # C extensions
 *.so

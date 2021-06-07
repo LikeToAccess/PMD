@@ -47,7 +47,7 @@ async def on_ready():
 
 @bot.listen("on_message")
 async def on_message(message):
-	if message.content.startswith("https://") and message.channel.id == channel_id["commands"]:
+	if message.content.startswith("https://") and message.channel.id == channel_id["commands"] and not "captcha?v=" in message.content:
 		await send("Testing link...", silent=False)
 		if "--res=" in message.content:
 			forced_resolution = message.content.split("--res=")[1]
@@ -59,7 +59,10 @@ async def on_message(message):
 
 async def send(msg, channel="commands", silent=True):
 	channel = bot.get_channel(channel_id[channel])
-	await channel.send(msg)
+	image = False
+	if "--file=" in msg: image = msg.split("=")[1]
+	if not image: await channel.send(msg)
+	else: await channel.send(file=discord.File(image))
 	if not silent: print(msg)
 
 async def set_status(activity, status=discord.Status.online):
@@ -90,6 +93,19 @@ async def downloads(ctx, user: discord.User, *flags):
 	if "--list" in flags:
 		await send("{}".format("\n".join(movies)))
 	await send(f"{user.display_name} has downloaded {len(movies)} movies/episodes totaling {round(total_size,0)} MB.")
+
+#!cancel Star Wars The Bad Batch - S01e01 - Aftermath
+@bot.command()
+async def cancel(ctx, *filename):
+	if len(filename) > 1: filename = " ".join(filename)
+
+
+@bot.command()
+async def solve(ctx, captcha_solution):
+	await ctx.message.delete()
+	filename = "solved_captcha.txt"
+	media.write_file(filename, captcha_solution)
+	await ctx.send("Attempting captcha solve...")
 
 @bot.command()
 async def play(ctx, url : str):

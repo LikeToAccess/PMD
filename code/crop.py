@@ -16,11 +16,11 @@ import cv2
 def crop(img, loc):
 	print(loc)
 	image = cv2.imread(img)
-	ROI = image[loc["y"]+300:loc["y"]+600, loc["x"]+360:loc["x"]+960]
+	ROI = image[loc["y"]:loc["y"]+50, loc["x"]:loc["x"]+120]
 	img = img.split(".")[0]
 	cv2.imwrite(f"{img}_cropped.png", ROI)  # replace "out.png" with img
 	return f"{img}_cropped.png"
 
 
 if __name__ == "__main__":
-	crop("captcha.png", {"x": 540, "y": 462})
+	crop("captcha.png", {"x": 396, "y": 464})

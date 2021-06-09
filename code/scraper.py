@@ -23,11 +23,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 # from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 # from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException
+from selenium.common.exceptions import *#TimeoutException, ElementClickInterceptedException, NoSuchElementException, NoSuchWindowException
 
 
 class Scraper:
-	def __init__(self, link):
+	def __init__(self, link=False):
 		self.link = link
 		options = Options()
 		files = os.listdir()
@@ -40,14 +40,16 @@ class Scraper:
 		# command = Keys.CONTROL if os.name == "nt" else Keys.COMMAND
 		print(f"DEBUG: {executable}")
 		self.driver = webdriver.Chrome(executable_path=os.path.abspath(executable), options=options)
-		self.driver.get(self.link)
+		if link:
+			self.driver.get(self.link)
 		sleep(1)
-		window_name = self.driver.window_handles[1]
+		window_name = self.driver.window_handles[1 if link else 0]
 		self.driver.switch_to.window(window_name=window_name)
 		self.driver.close()
-		window_name = self.driver.window_handles[0]
-		self.driver.switch_to.window(window_name=window_name)
-		self.driver.refresh()
+		if link:
+			window_name = self.driver.window_handles[0]
+			self.driver.switch_to.window(window_name=window_name)
+			self.driver.refresh()
 		self.headers = {"user-agent": cfg.user_agent}
 
 	def submit_captcha(self, xpath="//*[@id=\"player-captcha\"]/div[3]/div/div"):
@@ -75,11 +77,6 @@ class Scraper:
 			captcha_element = self.driver.find_element_by_xpath(xpath)
 			captcha = captcha_element.get_attribute(attr)
 			filename = self.screenshot_captcha(captcha_element)
-
-			# action_chains = ActionChains(self.driver)
-			# action_chains.move_to_element(captcha_element).context_click().send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
-			# with open("captcha.png", "wb") as file:
-			# 	file.write()
 			print(f"DEBUG: Captcha, {captcha}")
 		except TimeoutException:
 			print("DEBUG: No captcha")
@@ -106,6 +103,27 @@ class Scraper:
 
 		return captcha
 
+	def click(self, xpath):
+		element = self.driver.find_element_by_xpath(xpath)
+		element.click()
+
+	# //*[@id="_sAOaKababmu"]
+	# /html/body/main/div/div/section/div[1]/div/movies[1]/div/div/div/div/a
+	def search(self, query):
+		query = "%20".join(query.split())
+		self.driver.get(f"https://gomovies-online.cam/search/{query}")
+		try:
+			self.click("/html/body/main/div/div/section/div[1]/div/movies[1]/div/div/div/div/a")
+		except NoSuchElementException:
+			# no results
+			error = f"Search for {query} yielded no results."
+			print(error)
+			log(error)
+			return False
+		url = self.driver.current_url + "-online-for-free.html"
+		self.driver.get(url)
+		return self.run()
+
 	def run(self, xpath="//*[@id=\"_skqeqEJBSrS\"]/div[2]/video", attr="src"):
 		print("WEB SCRAPING")
 		log("Waiting on web scraper (up to 35 seconds).")
@@ -128,5 +146,6 @@ class Scraper:
 
 
 if __name__ == "__main__":
-	scraper = Scraper("https://gomovies-online.cam/watch-film/wrath-of-man/CCmkfFgE/kp6jEoRd-online-for-free.html")
-	print(scraper.run())
+	movie = input("Enter a movie name:\n> ")
+	scraper = Scraper("https://gomovies-online.cam")
+	print(scraper.search(movie))

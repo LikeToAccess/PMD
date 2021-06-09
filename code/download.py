@@ -91,7 +91,7 @@ def download(url, author):
 	global start_time
 
 	base_url = None
-	if not url[:36] == "https://stream-1-1-ip4.loadshare.org":
+	if not url[:15] == "https://stream-":
 		if not url[-21:] == "-online-for-free.html":
 			url = url + "-online-for-free.html"
 		scraper = Scraper(url)
@@ -99,6 +99,7 @@ def download(url, author):
 		url = scraper.run()
 
 	data = check(url, base_url, author=author) if url else url
+	print(data)
 	if not data:
 		error = "Scraping failed. Link is invalid or captcha was not solved."
 		print(error)

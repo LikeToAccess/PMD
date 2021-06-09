@@ -15,6 +15,7 @@ from threading import Thread
 import discord
 import youtube_dl
 from discord.ext import commands, tasks
+from scraper import Scraper
 import config as cfg
 import media
 import download
@@ -47,15 +48,18 @@ async def on_ready():
 
 @bot.listen("on_message")
 async def on_message(message):
-	if message.content.startswith("https://") and message.channel.id == channel_id["commands"] and not "captcha?v=" in message.content:
+	if message.content.startswith("https://") \
+	and message.channel.id == channel_id["commands"] \
+	and not "captcha?v=" in message.content:
 		await send("Testing link...", silent=False)
 		if "--res=" in message.content:
 			forced_resolution = message.content.split("--res=")[1]
 			cfg.write_attempts(int(forced_resolution))
 		author = message.author.id
 		link = message.content
-		threaded_download = Thread(target=download.download, args=(link,author))
-		threaded_download.start()
+		run_download(link, author)
+		# threaded_download = Thread(target=download.download, args=(link,author))
+		# threaded_download.start()
 
 async def send(msg, channel="commands", silent=True):
 	channel = bot.get_channel(channel_id[channel])
@@ -92,13 +96,28 @@ async def downloads(ctx, user: discord.User, *flags):
 		total_size += float(line[2])
 	if "--list" in flags:
 		await send("{}".format("\n".join(movies)))
-	await send(f"{user.display_name} has downloaded {len(movies)} movies/episodes totaling {round(total_size,0)} MB.")
+	await send(
+		f"{user.display_name} has downloaded \
+		{len(movies)} movies/episodes totaling \
+		{round(total_size,0)} MB."
+	)
 
-#!cancel Star Wars The Bad Batch - S01e01 - Aftermath
+# TODO
 @bot.command()
 async def cancel(ctx, *filename):
+	#!cancel Star Wars The Bad Batch - S01e01 - Aftermath
 	if len(filename) > 1: filename = " ".join(filename)
 
+@bot.command(name="download", aliases=["add"])
+async def search_and_download(ctx, *movie_name):
+	if len(movie_name) > 1: movie_name = " ".join(movie_name)
+	else: movie_name = movie_name[0]
+	author = ctx.author.id
+	scraper = Scraper("https://gomovies-online.cam/")
+	print(movie_name)
+	url = scraper.search(movie_name)
+	if url:
+		run_download(url, author)
 
 @bot.command()
 async def solve(ctx, captcha_solution):
@@ -166,6 +185,9 @@ async def stop(ctx):
 	await ctx.message.delete()
 	print("Stopped audio.")
 
+def run_download(link, author):
+	threaded_download = Thread(target=download.download, args=(link,author))
+	threaded_download.start()
 
 def run():
 	return bot.run(token)

@@ -115,6 +115,7 @@ async def search_and_download(ctx, *movie_name):
 	author = ctx.author.id
 	scraper = Scraper("https://gomovies-online.cam/")
 	print(movie_name)
+	# TODO: make this multithreaded
 	url = scraper.search(movie_name)
 	if url:
 		run_download(url, author)

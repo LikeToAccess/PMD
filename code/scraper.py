@@ -29,6 +29,7 @@ from selenium.common.exceptions import *#TimeoutException, ElementClickIntercept
 class Scraper:
 	def __init__(self, link=False):
 		self.link = link
+		self.start_time = time()
 		options = Options()
 		files = os.listdir()
 		for file in files:
@@ -71,7 +72,6 @@ class Scraper:
 		return crop.crop(filename, location)
 
 	def check_captcha(self, xpath="//*[@id=\"checkcapchamodelyii-captcha-image\"]", attr="src"):
-		start_time = time()
 		try:
 			captcha_element = WebDriverWait(self.driver,5).until(EC.visibility_of_element_located((By.XPATH,xpath)))
 			captcha_element = self.driver.find_element_by_xpath(xpath)
@@ -87,13 +87,13 @@ class Scraper:
 				log(f"--file={filename}")
 				filename = "solved_captcha.txt"
 				solved_captcha = False
-				while not solved_captcha and (time() - start_time) < 60:
+				while not solved_captcha and (time() - self.start_time) < 60:
 					sleep(1)
 					# print(f"DEBUG: Checking for {filename}")
 					if os.path.isfile(filename):
 						solved_captcha = media.read_file(filename)[0]
 						media.remove_file(filename)
-						print(f"DEBUG: Solved captcha, {solved_captcha}, {not solved_captcha}/{(time() - start_time) < 90}")
+						print(f"DEBUG: Solved captcha, {solved_captcha}, {not solved_captcha}/{(time() - self.start_time) < 60}")
 			else:
 				solved_captcha = input("Enter the solved captcha:\n> ")
 			if solved_captcha:
@@ -110,8 +110,8 @@ class Scraper:
 	# //*[@id="_sAOaKababmu"]
 	# /html/body/main/div/div/section/div[1]/div/movies[1]/div/div/div/div/a
 	def search(self, query):
-		query = "%20".join(query.split())
-		self.driver.get(f"https://gomovies-online.cam/search/{query}")
+		search_arg = "%20".join(query.split())
+		self.driver.get(f"https://gomovies-online.cam/search/{search_arg}")
 		try:
 			self.click("/html/body/main/div/div/section/div[1]/div/movies[1]/div/div/div/div/a")
 		except NoSuchElementException:
@@ -119,6 +119,7 @@ class Scraper:
 			error = f"Search for {query} yielded no results."
 			print(error)
 			log(error)
+			self.driver.quit()
 			return False
 		url = self.driver.current_url + "-online-for-free.html"
 		self.driver.get(url)

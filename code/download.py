@@ -14,6 +14,8 @@ from time import time
 import os
 from scraper import Scraper
 import requests as req
+from requests.exceptions import *
+from urllib3.exceptions import SSLError
 import config as cfg
 import stream
 import media
@@ -116,7 +118,7 @@ def download(url, author):
 
 	start_time = time()
 	try: stream.download_file(request, absolute_path, resolution, start_time=start_time)
-	except (req.exceptions.ConnectionError, ConnectionResetError, req.exceptions.ChunkedEncodingError):
+	except (ConnectionError, ConnectionResetError, ChunkedEncodingError, SSLError):
 		log(f"Connection error while downloading {media.format_title(filename)}.\nRestarting download...")
 		download(base_url if base_url else url, author=author)
 		return False

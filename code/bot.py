@@ -120,6 +120,11 @@ async def downloads(ctx, user: discord.User, *flags):
 # 	if url:
 # 		run_download(url, author)
 
+
+@bot.command()
+async def react(ctx):
+	await ctx.message.add_reaction("\U0001F44D")
+
 @bot.command()
 async def solve(ctx, captcha_solution):
 	await ctx.message.delete()

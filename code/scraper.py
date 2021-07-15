@@ -10,142 +10,117 @@
 # license           : MIT
 # py version        : 3.8.2 (must run on 3.6 or higher)
 #==============================================================================
+import time
+import sys
 import os
-from time import sleep, time
-import crop
-import media
-import config as cfg
-from media import log
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+# from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
-# from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import *
 
 
 class Scraper:
-	def __init__(self, link=False):
-		self.link = link
+	def __init__(self):
 		options = Options()
 		files = os.listdir()
 		for file in files:
 			if file.endswith("crx"):
 				options.add_extension(file)
-		# options.add_argument("--load-extension=\"/Users/ian/Library/Application Support/Google/Chrome/Default/Extensions\"")
 		# options.add_argument("--headless")
+		options.add_argument("--disable-gpu")
+		# options.binary_location = r"C:\\Program Files (x86)\\AVG\\Browser\\Application\\AVGBrowser.exe"
+		options.add_argument("log-level=3")
 		executable = "chromedriver.exe" if os.name == "nt" else "chromedriver"
-		# command = Keys.CONTROL if os.name == "nt" else Keys.COMMAND
-		print(f"DEBUG: {executable}")
 		self.driver = webdriver.Chrome(executable_path=os.path.abspath(executable), options=options)
-		if link:
-			self.driver.get(self.link)
-		sleep(1)
-		window_name = self.driver.window_handles[1 if link else 0]
-		self.driver.switch_to.window(window_name=window_name)
-		self.driver.close()
-		if link:
-			window_name = self.driver.window_handles[0]
-			self.driver.switch_to.window(window_name=window_name)
-			self.driver.refresh()
-		self.headers = {"user-agent": cfg.user_agent}
+		# self.driver = webdriver.Chrome(executable_path="chromedriver.exe", options=options)
+		# time.sleep(2)
+		# self.driver.execute_script("window.open(\"\");")
+		# self.driver.close()
+		self.headers = {"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"}
+		self.first_launch = True
+		self.start_time = time.time()
 
-	def submit_captcha(self, xpath="//*[@id=\"player-captcha\"]/div[3]/div/div"):
-		button_element = self.driver.find_element_by_xpath(xpath)
-		try:
-			button_element.click()
-			return True
-		except ElementClickInterceptedException:
-			print("Could not submit captcha do to ads on the site.")
-		return False
+	def search(self, link):
+		self.open_link(link)
+		results = self.get_results_from_search()
+		# self.close()
+		return results
 
-	def solve_captcha(self, solved_captcha, xpath="//*[@id=\"checkcapchamodelyii-captcha\"]"):
-		captcha_element = self.driver.find_element_by_xpath(xpath)
-		captcha_element.send_keys(solved_captcha)
+	# def refresh(self):
+	# 	self.driver.refresh()
 
-	def screenshot_captcha(self, captcha_element, filename="captcha.png"):
-		self.driver.save_screenshot(filename)
-		location = captcha_element.location
-		return crop.crop(filename, location)
+	def wait_until_element(self, stratagy, locator, timeout=10):
+		wait = WebDriverWait(self.driver, timeout)
+		element = wait.until(
+			EC.presence_of_element_located(
+				(
+					stratagy, locator
+				)
+			)
+		)
+		return element
 
-	def check_captcha(self, xpath="//*[@id=\"checkcapchamodelyii-captcha-image\"]", attr="src"):
-		start_time = time()
-		try:
-			captcha_element = WebDriverWait(self.driver,5).until(EC.visibility_of_element_located((By.XPATH,xpath)))
-			captcha_element = self.driver.find_element_by_xpath(xpath)
-			captcha = captcha_element.get_attribute(attr)
-			filename = self.screenshot_captcha(captcha_element)
-			print(f"DEBUG: Captcha, {captcha}")
-		except TimeoutException:
-			print("DEBUG: No captcha")
-			captcha = False
-		if captcha:
-			if __name__ != "__main__":
-				log("Captcha! Please solve using the command: ```!solve <captcha_solution>```\nREMIND IAN TO FIX THIS --> please don't mess up or the download will fail.")
-				log(f"--file={filename}")
-				filename = "solved_captcha.txt"
-				solved_captcha = False
-				while not solved_captcha and (time() - start_time) < 60:
-					sleep(1)
-					# print(f"DEBUG: Checking for {filename}")
-					if os.path.isfile(filename):
-						solved_captcha = media.read_file(filename)[0]
-						media.remove_file(filename)
-						print(f"DEBUG: Solved captcha, {solved_captcha}, {not solved_captcha}/{(time() - start_time) < 90}")
-			else:
-				solved_captcha = input("Enter the solved captcha:\n> ")
-			if solved_captcha:
-				self.solve_captcha(solved_captcha)
-				self.submit_captcha()
-				# self.run()
 
-		return captcha
-
-	def click(self, xpath):
-		element = self.driver.find_element_by_xpath(xpath)
-		element.click()
-
-	# //*[@id="_sAOaKababmu"]
-	# /html/body/main/div/div/section/div[1]/div/movies[1]/div/div/div/div/a
-	def search(self, query):
-		query = "%20".join(query.split())
-		self.driver.get(f"https://gomovies-online.cam/search/{query}")
-		try:
-			self.click("/html/body/main/div/div/section/div[1]/div/movies[1]/div/div/div/div/a")
-		except NoSuchElementException:
-			# no results
-			error = f"Search for {query} yielded no results."
-			print(error)
-			log(error)
-			return False
-		url = self.driver.current_url + "-online-for-free.html"
-		self.driver.get(url)
-		return self.run()
-
-	def run(self, xpath="//*[@id=\"_skqeqEJBSrS\"]/div[2]/video", attr="src"):
-		print("WEB SCRAPING")
-		log("Waiting on web scraper (up to 35 seconds).")
-		self.check_captcha()
-		print("DEBUG: Finished check_captcha function")
-		# self.run()
-		try:
-			element = WebDriverWait(self.driver,30).until(EC.visibility_of_element_located((By.XPATH,xpath)))
-			element = self.driver.find_element_by_xpath(xpath)
-			data = element.get_attribute(attr)
-			while len(data) < 100:
-				print("DEBUG: No data!")
+	def open_link(self, link):
+		self.driver.get(link)
+		if self.first_launch:
+			# self.wait_until_element(By.XPATH, "/html/body")
+			element = self.driver.find_elements(By.XPATH, "//*[@id=\"container-b530c7d909bb9eb21c76642999b355b4\"]/div[2]/div[5]/div/div[3]")
+			if element:
+				# print(element)
+				time.sleep(1)
 				self.driver.refresh()
-				data = self.run(xpath, attr)
-			self.driver.quit()
-			return data
-		except TimeoutException:
-			print("DEBUG: Link invalid, scraping failed.")
-			return False
+				self.open_link(link)
+			self.first_launch = False
+			# print("TEST")
 
+		'''
+		<div class="container-e9f98936bb33e6212d822ba738daa9a7__report-final">Ad was closed</div>
+		'''
+
+	def current_url(self):
+		return self.driver.current_url
+
+	def close(self):
+		self.driver.close()
+
+	def get_results_from_search(self):
+		elements = self.driver.find_elements_by_class_name("item_hd") + \
+				   self.driver.find_elements_by_class_name("item_series")
+		return elements
+
+	def maximize(self):
+		self.driver.maximize_window()
+
+	def get_download_link(self, source_link, timeout=10):
+		self.open_link(source_link)
+		target_link = self.wait_until_element(By.TAG_NAME, "video", timeout)
+		print(target_link.get_attribute("src"))
+		return target_link
+
+'''
+<video class="jw-video jw-reset" disableremoteplayback="" webkit-playsinline="" playsinline="" preload="auto" src="https://stream-2-1-ip4.loadshare.org/slice/5/VideoID-lpblIaAB/qFWIAA/ZBeL1r/MboyAT/ZJqtJS/360?name=the-lego-star-wars-holiday-special_360&amp;token=ip=67.220.18.185~st=1626163022~exp=1626177422~acl=/*~hmac=ffbbe3557b8fba7c8735fc3c0a0b869a881660768acbf245825fffd3fae27e72"></video>
+'''
+
+	# def get_movie(self, name):
+	# 	self.driver.get_link_by_partial_text("").click()
+	# 	self.driver.find_element_by_tag_name("input").text()
 
 if __name__ == "__main__":
-	movie = input("Enter a movie name:\n> ")
-	scraper = Scraper("https://gomovies-online.cam")
-	print(scraper.search(movie))
+	scraper = Scraper()
+	search = True
+	while search != "":
+		search = "-".join(input("Enter a Title to search for:\n> ").split())
+		search_results = scraper.search(f"https://gomovies-online.cam/search/{search}")
+		try:
+			search_results[0].click()
+			scraper.get_download_link(scraper.current_url() + "-online-for-free.html")
+		except IndexError:
+			print("Error: No search results found!")
+	scraper.close()
+
+	# search_arg = "-".join(sys.argv[1:])
+	# search_results = scraper.search(f"https://gomovies-online.cam/search/{search_arg}")
+	# for result in search_results: print(result.text)

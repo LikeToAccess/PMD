@@ -29,9 +29,12 @@ class Scraper:
 			if file.endswith("crx"):
 				options.add_extension(file)
 		# options.add_argument("--headless")
+		options.add_argument("--disable-gpu")
+		# options.binary_location = r"C:\\Program Files (x86)\\AVG\\Browser\\Application\\AVGBrowser.exe"
 		options.add_argument("log-level=3")
 		executable = "chromedriver.exe" if os.name == "nt" else "chromedriver"
 		self.driver = webdriver.Chrome(executable_path=os.path.abspath(executable), options=options)
+		# self.driver = webdriver.Chrome(executable_path="chromedriver.exe", options=options)
 		# time.sleep(2)
 		# self.driver.execute_script("window.open(\"\");")
 		# self.driver.close()
@@ -63,10 +66,22 @@ class Scraper:
 	def open_link(self, link):
 		self.driver.get(link)
 		if self.first_launch:
-			self.wait_until_element(By.XPATH, "/html/body")
-			self.driver.refresh()
+			# self.wait_until_element(By.XPATH, "/html/body")
+			element = self.driver.find_elements(By.XPATH, "//*[@id=\"container-b530c7d909bb9eb21c76642999b355b4\"]/div[2]/div[5]/div/div[3]")
+			if element:
+				# print(element)
+				time.sleep(1)
+				self.driver.refresh()
+				self.open_link(link)
 			self.first_launch = False
-			print("TEST")
+			# print("TEST")
+
+		'''
+		<div class="container-e9f98936bb33e6212d822ba738daa9a7__report-final">Ad was closed</div>
+		'''
+
+	def current_url(self):
+		return self.driver.current_url
 
 	def close(self):
 		self.driver.close()
@@ -81,7 +96,8 @@ class Scraper:
 
 	def get_download_link(self, source_link, timeout=10):
 		self.open_link(source_link)
-		target_link = self.wait_until_element(By.PARTIAL_LINK_TEXT, "-ip4.loadshare.org/slice/", timeout)
+		target_link = self.wait_until_element(By.TAG_NAME, "video", timeout)
+		print(target_link.get_attribute("src"))
 		return target_link
 
 '''
@@ -94,7 +110,15 @@ class Scraper:
 
 if __name__ == "__main__":
 	scraper = Scraper()
-	print(scraper.get_download_link("https://gomovies-online.cam/watch-film/the-lego-star-wars-holiday-special/XTy7bH1m/28LiY2zW-online-for-free.html"))
+	search = True
+	while search != "":
+		search = "-".join(input("Enter a Title to search for:\n> ").split())
+		search_results = scraper.search(f"https://gomovies-online.cam/search/{search}")
+		try:
+			search_results[0].click()
+			scraper.get_download_link(scraper.current_url() + "-online-for-free.html")
+		except IndexError:
+			print("Error: No search results found!")
 	scraper.close()
 
 	# search_arg = "-".join(sys.argv[1:])

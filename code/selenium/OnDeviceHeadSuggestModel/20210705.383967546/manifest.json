@@ -1,9 +1,0 @@
-{
-  "manifest_version": 2,
-  "name": "OnDeviceHeadSuggestENUS",
-  "version": "20210705.383967546",
-  "imageName": "image.squash",
-  "squash": true,
-  "fsType": "squashfs",
-  "isRemovable": false
-}

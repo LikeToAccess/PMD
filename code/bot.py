@@ -67,9 +67,10 @@ async def on_message(message):
 	# threaded_download = Thread(target=download.download, args=(link,author))
 	# threaded_download.start()
 
-@tasks.loop(seconds=5)
-async def check_logs():
-	log_data = media.read_file("log.txt", filter=True)
+@tasks.loop(seconds=0.5)
+async def check_logs(filename="log.txt"):
+	log_data = media.read_file(filename, filter=True)
+	media.write_file(filename, "### Beginning of message buffer from server ###\n")
 	if log_data:
 		for message in log_data:
 			if "--channel=" in message:
@@ -77,7 +78,6 @@ async def check_logs():
 				await send(message[0], channel=message[1])
 			else:
 				await send(message)
-		media.write_file("log.txt", "### Beginning of message buffer from server ###\n")
 
 
 #                   |
@@ -149,9 +149,11 @@ async def create_embed(title, description, thumbnail_url, color=0xcbaf2f, channe
 async def send(msg, channel="commands", silent=True):
 	channel = bot.get_channel(channel_id[channel])
 	image = False
-	if "--file=" in msg: image = msg.split("=")[1]
+	if "--file=" in msg: msg = msg.split("--file=")
 	if not image: await channel.send(msg)
-	else: await channel.send(file=discord.File(image))
+	else:
+		await channel.send(file=discord.File(msg[1]))
+		await channel.send(msg[0].strip())
 	if not silent: print(msg)
 
 async def set_status(activity, status=discord.Status.online):

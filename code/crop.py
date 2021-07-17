@@ -18,8 +18,8 @@ def crop(img, loc):
 	image = cv2.imread(img)
 	ROI = image[loc["y"]:loc["y"]+50, loc["x"]:loc["x"]+120]
 	img = img.split(".")[0]
-	cv2.imwrite(f"{img}_cropped.png", ROI)  # replace "out.png" with img
-	return f"{img}_cropped.png"
+	cv2.imwrite(img, ROI)
+	return img
 
 
 if __name__ == "__main__":

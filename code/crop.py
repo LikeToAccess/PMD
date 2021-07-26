@@ -12,15 +12,20 @@
 #==============================================================================
 import cv2
 
-
-def crop(img, loc):
+def crop(img, loc, executable):
 	print(loc)
 	image = cv2.imread(img)
-	ROI = image[loc["y"]:loc["y"]+50, loc["x"]:loc["x"]+120]
-	img = img.split(".")[0]
+	if ".exe" not in executable:
+		loc["y"]     = loc["y"]     * 2
+		loc["x"]     = loc["x"]     * 2
+		loc["y_off"] = loc["y_off"] * 2
+		loc["x_off"] = loc["x_off"] * 2
+	ROI = image[
+		loc["y"]:loc["y"]+loc["y_off"],
+		loc["x"]:loc["x"]+loc["x_off"]
+	]
 	cv2.imwrite(img, ROI)
 	return img
 
-
 if __name__ == "__main__":
-	crop("captcha.png", {"x": 396, "y": 464})
+	crop("captcha.png", {'x': 540, 'y': 462, 'x_off': 120, 'y_off': 50}, "driver")

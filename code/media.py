@@ -15,8 +15,10 @@ import os
 import config as cfg
 
 
-def log(msg):
+def log(msg, silent=True):
 	append_file("log.txt", msg)
+	if not silent:
+		print(msg)
 
 def credit(author, filename, resolution, file_size):
 	msg = f"{filename}|{resolution}|{file_size}"

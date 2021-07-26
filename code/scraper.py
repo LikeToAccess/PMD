@@ -13,6 +13,7 @@
 import time
 import os
 import crop
+import media
 from media import log
 from selenium import webdriver
 from selenium.common.exceptions import *
@@ -34,8 +35,8 @@ class Scraper:
 		options.add_argument(f"user-data-dir={user_data_dir}")
 		options.add_argument("--disable-gpu")
 		options.add_argument("log-level=3")
-		executable = "chromedriver.exe" if os.name == "nt" else "chromedriver"
-		self.driver = webdriver.Chrome(executable_path=os.path.abspath(executable), options=options)
+		self.executable = "chromedriver.exe" if os.name == "nt" else "chromedriver"
+		self.driver = webdriver.Chrome(executable_path=os.path.abspath(self.executable), options=options)
 		self.first_launch = True
 		self.headers = {
 			"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
@@ -103,8 +104,11 @@ class Scraper:
 
 	def screenshot_captcha(self, captcha_element, filename="captcha.png"):
 		self.driver.save_screenshot(filename)
+		# self.driver.save_screenshot("full_page.png")
 		location = captcha_element.location
-		return crop.crop(filename, location)
+		location["y_off"] = 50
+		location["x_off"] = 120
+		return crop.crop(filename, location, self.executable)
 
 	def check_captcha(self):
 		try:
@@ -114,20 +118,33 @@ class Scraper:
 				timeout=1.5
 			)
 			captcha_input = self.driver.find_element(By.XPATH, "//*[@id=\"checkcapchamodelyii-captcha\"]")
+			captcha_submit = self.driver.find_element(By.XPATH, "//*[@id=\"player-captcha\"]/div[3]/div/div")
 		except TimeoutException:
-			return None, None
+			return None, None, None
 		if captcha_image:
 			print("DEBUG: Captcha!")
 
-		return captcha_image, captcha_input
+		return captcha_image, captcha_input, captcha_submit
 
 	def get_download_link(self, source_url, timeout=10):
 		self.open_link(source_url)
-		captcha_image, captcha_input = self.check_captcha()
-		if captcha_image: # TODO
+		captcha_image, captcha_input, captcha_submit = self.check_captcha()
+		if captcha_image:
 			time.sleep(0.25)
 			self.screenshot_captcha(captcha_image)
-			log("Captcha! Please solve using the following command:\n```!solve <captcha_solution>```--file=screenshot.png")
+			log(
+				"Captcha! Solve using the command:\n```!solve <captcha_solution>```--file=captcha.png",
+				silent=False
+			)
+			solved_captcha = check_for_captcha_solve()
+
+			if not solved_captcha:
+				return False
+
+			captcha_input.send_keys(solved_captcha)
+			captcha_submit.click()
+			return self.get_download_link(source_url, timeout)
+
 		target_url = self.wait_until_element(By.TAG_NAME, "video", timeout)
 		self.driver.execute_script(
 			"videos = document.querySelectorAll(\"video\"); for(video of videos) {video.pause()}"
@@ -143,19 +160,39 @@ class Scraper:
 	def run(self, search_query):
 		start_time = time.time()
 		if "https://gomovies-online." in search_query:
-			pass
+			if not search_query.endswith("-online-for-free.html"):
+				search_query += "-online-for-free.html"
+			log("Downloading via direct link...")
+			self.get_download_link(search_query)
 		else:
+			log("Searching for matches...")
 			search_results, metadata = self.search(
 				"https://gomovies-online.cam/search/" + \
 				"-".join(search_query.split())
 			)
+			print(f"Finished scraping {len(metadata)} results in {round(time.time()-start_time,2)} seconds!")
 			if search_results:
 				self.get_download_link(search_results[0].get_attribute("href") + "-online-for-free.html")
 				# print(metadata)
 				# pass
 			else:
 				print("Error: No search results found!")
-		print(f"Finished scraping {len(metadata)} results in {round(time.time()-start_time,2)} seconds!")
+		print(f"Finished all scraping in {round(time.time()-start_time,2)} seconds!")
+
+
+def check_for_captcha_solve(timeout=100):
+	if __name__ == "__main__":
+			media.write_file("captcha.txt", input("Solve the captcha:\n> "))
+
+	filename = "captcha.txt"
+	for half_second in range(timeout*2):
+		time.sleep(0.5)
+		if os.path.isfile(filename):
+			solved_captcha = media.read_file(filename)[0]
+			media.remove_file(filename)
+			return solved_captcha
+	log(f"Captcha was not solved withing {timeout} seconds.\nAborting download.", silent=False)
+	return False
 
 
 if __name__ == "__main__":

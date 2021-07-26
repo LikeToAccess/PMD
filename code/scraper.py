@@ -12,6 +12,8 @@
 #==============================================================================
 import time
 import os
+import crop
+from media import log
 from selenium import webdriver
 from selenium.common.exceptions import *
 from selenium.webdriver.common.by import By
@@ -28,7 +30,8 @@ class Scraper:
 			if file.endswith("crx"):
 				options.add_extension(file)
 		# options.add_argument("--headless")
-		options.add_argument("user-data-dir=selenium")
+		user_data_dir = os.path.abspath("selenium")
+		options.add_argument(f"user-data-dir={user_data_dir}")
 		options.add_argument("--disable-gpu")
 		options.add_argument("log-level=3")
 		executable = "chromedriver.exe" if os.name == "nt" else "chromedriver"
@@ -98,14 +101,19 @@ class Scraper:
 	# def maximize(self):
 	# 	self.driver.maximize_window()
 
+	def screenshot_captcha(self, captcha_element, filename="captcha.png"):
+		self.driver.save_screenshot(filename)
+		location = captcha_element.location
+		return crop.crop(filename, location)
+
 	def check_captcha(self):
 		try:
 			captcha_image = self.wait_until_element(
 				By.XPATH,
 				"//*[@id=\"checkcapchamodelyii-captcha-image\"]",
-				timeout=1
+				timeout=1.5
 			)
-			captcha_input = self.driver.find_element(By.XPATH, "")
+			captcha_input = self.driver.find_element(By.XPATH, "//*[@id=\"checkcapchamodelyii-captcha\"]")
 		except TimeoutException:
 			return None, None
 		if captcha_image:
@@ -116,8 +124,10 @@ class Scraper:
 	def get_download_link(self, source_url, timeout=10):
 		self.open_link(source_url)
 		captcha_image, captcha_input = self.check_captcha()
-		# TODO
-		# if captcha_image:
+		if captcha_image: # TODO
+			time.sleep(0.25)
+			self.screenshot_captcha(captcha_image)
+			log("Captcha! Please solve using the following command:\n```!solve <captcha_solution>```--file=screenshot.png")
 		target_url = self.wait_until_element(By.TAG_NAME, "video", timeout)
 		self.driver.execute_script(
 			"videos = document.querySelectorAll(\"video\"); for(video of videos) {video.pause()}"
@@ -141,6 +151,8 @@ class Scraper:
 			)
 			if search_results:
 				self.get_download_link(search_results[0].get_attribute("href") + "-online-for-free.html")
+				# print(metadata)
+				# pass
 			else:
 				print("Error: No search results found!")
 		print(f"Finished scraping {len(metadata)} results in {round(time.time()-start_time,2)} seconds!")

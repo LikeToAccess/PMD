@@ -116,7 +116,8 @@ class Scraper:
 	def get_download_link(self, source_url, timeout=10):
 		self.open_link(source_url)
 		captcha_image, captcha_input = self.check_captcha()
-		# if captcha_image: # TODO
+		# TODO
+		# if captcha_image:
 		target_url = self.wait_until_element(By.TAG_NAME, "video", timeout)
 		self.driver.execute_script(
 			"videos = document.querySelectorAll(\"video\"); for(video of videos) {video.pause()}"

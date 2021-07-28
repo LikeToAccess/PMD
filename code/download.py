@@ -91,12 +91,6 @@ def size(filename):
 
 def download(url, author):
 	global start_time
-	base_url = None
-	if url[-21:] != "-online-for-free.html": url += "-online-for-free.html"
-	scraper = Scraper()
-	scraper.open_link(url)
-	base_url = url
-	url = scraper.get_download_link()
 
 	data = check(url, base_url, author=author) if url else url
 	print(data)

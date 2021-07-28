@@ -49,7 +49,7 @@ async def on_ready():
 	check_logs.start()
 	print(f"{bot.user} successfuly connected!")
 	await set_status("Free Movies on Plex!", discord.Status.online)
-	await create_embed("The Lego Star Wars Holiday Special", "Movie", "https://static.gomovies-online.cam/dist/img/psJPyaWoWzu_KJHtTpHoeTls3VZG2_vuy9Ea8lIMpLhO5_9mqZbNL768dJng8lbo2m4xT1tCWN8ee-P1Uj2Lo-SDJ2I46so9NvUUI_LooWmT2FUY0D3spfdOg_4onRdn.jpg")
+	# await create_embed("The Lego Star Wars Holiday Special", "Movie", "https://static.gomovies-online.cam/dist/img/psJPyaWoWzu_KJHtTpHoeTls3VZG2_vuy9Ea8lIMpLhO5_9mqZbNL768dJng8lbo2m4xT1tCWN8ee-P1Uj2Lo-SDJ2I46so9NvUUI_LooWmT2FUY0D3spfdOg_4onRdn.jpg")
 
 @bot.listen("on_message")
 async def on_message(message):
@@ -108,18 +108,24 @@ async def downloads(ctx, user: discord.User, *flags):
 # 	#!cancel Star Wars The Bad Batch - S01e01 - Aftermath
 # 	if len(filename) > 1: filename = " ".join(filename)
 
-# @bot.command(name="download", aliases=["add"])
-# async def search_and_download(ctx, *movie_name):
-# 	if len(movie_name) > 1: movie_name = " ".join(movie_name)
-# 	else: movie_name = movie_name[0]
-# 	author = ctx.author.id
-# 	scraper = Scraper("https://gomovies-online.cam/")
-# 	print(movie_name)
-# 	# TODO: make this multithreaded
-# 	url = scraper.search(movie_name)
-# 	if url:
-# 		run_download(url, author)
+@bot.command(aliases=["add", "download"])
+async def search(ctx, *movie_name):
+	movie_name = " ".join(movie_name)
+	author = ctx.author.id
+	scraper = Scraper()
+	print(movie_name)
+	# TODO: make this multithreaded
+	if "https://gomovies-online." in movie_name:
+		await send("Downloading via direct link...")
+		url = scraper.get_download_link(movie_name).get_attribute("src")  # This would be a link not a query
+	else:
+		await send("Searching for matches...")
+		url = scraper.download_first_from_search(movie_name).get_attribute("src")  # Searches using a movie title
 
+	if url:
+		run_download(url, author)  # If there were any results found, then download
+	else:
+		await send("Error: No search results found!")
 
 @bot.command()
 async def react(ctx):

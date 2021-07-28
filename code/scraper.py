@@ -127,6 +127,8 @@ class Scraper:
 		return captcha_image, captcha_input, captcha_submit
 
 	def get_download_link(self, source_url, timeout=10):
+		if not source_url.endswith("-online-for-free.html"):
+			source_url += "-online-for-free.html"
 		self.open_link(source_url)
 		captcha_image, captcha_input, captcha_submit = self.check_captcha()
 		if captcha_image:
@@ -149,7 +151,7 @@ class Scraper:
 		self.driver.execute_script(
 			"videos = document.querySelectorAll(\"video\"); for(video of videos) {video.pause()}"
 		)
-		print(target_url.get_attribute("src"))
+		# print(target_url.get_attribute("src"))
 		return target_url
 
 	# '''Demitri's Holy Contribution'''
@@ -157,27 +159,25 @@ class Scraper:
 	# 	self.driver.get_link_by_partial_text("").click()
 	# 	self.driver.find_element_by_tag_name("input").text()
 
-	def run(self, search_query):
+	def download_first_from_search(self, search_query):
 		start_time = time.time()
-		if "https://gomovies-online." in search_query:
-			if not search_query.endswith("-online-for-free.html"):
-				search_query += "-online-for-free.html"
-			log("Downloading via direct link...")
-			self.get_download_link(search_query)
+		url = None
+		search_results, metadata = self.search(
+			"https://gomovies-online.cam/search/" + \
+			"-".join(search_query.split())
+		)
+		print(f"Finished scraping {len(metadata)} results in {round(time.time()-start_time,2)} seconds!")
+		if search_results:
+			url = self.get_download_link(search_results[0].get_attribute("href") + "-online-for-free.html")
+			# print(metadata)
 		else:
-			log("Searching for matches...")
-			search_results, metadata = self.search(
-				"https://gomovies-online.cam/search/" + \
-				"-".join(search_query.split())
-			)
-			print(f"Finished scraping {len(metadata)} results in {round(time.time()-start_time,2)} seconds!")
-			if search_results:
-				self.get_download_link(search_results[0].get_attribute("href") + "-online-for-free.html")
-				# print(metadata)
-				# pass
-			else:
-				print("Error: No search results found!")
+			print("Error: No search results found!")
 		print(f"Finished all scraping in {round(time.time()-start_time,2)} seconds!")
+		return url
+
+	def run(self, search_query):
+		url = download_first_from_search(search_query)
+		return url.get_attribute("src") if url else url
 
 
 def check_for_captcha_solve(timeout=100):

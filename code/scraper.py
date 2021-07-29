@@ -24,7 +24,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 class Scraper:
-	def __init__(self):
+	def __init__(self, minimize=True):
 		options = Options()
 		files = os.listdir()
 		for file in files:
@@ -41,10 +41,13 @@ class Scraper:
 		self.headers = {
 			"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
 		}
+		if minimize:
+			self.driver.minimize_window()
 
 	def search(self, url):
 		self.open_link(url)
 		results, descriptions = self.get_results_from_search()
+		if not results: return None, None
 		# print(f"DEBUG: {descriptions[0].text}")
 		metadata = {}
 		for description in descriptions:
@@ -127,6 +130,7 @@ class Scraper:
 		return captcha_image, captcha_input, captcha_submit
 
 	def get_download_link(self, source_url, timeout=10):
+		source_url = source_url.split(".html")[0] + ".html"
 		if not source_url.endswith("-online-for-free.html"):
 			source_url += "-online-for-free.html"
 		self.open_link(source_url)
@@ -166,17 +170,24 @@ class Scraper:
 			"https://gomovies-online.cam/search/" + \
 			"-".join(search_query.split())
 		)
-		print(f"Finished scraping {len(metadata)} results in {round(time.time()-start_time,2)} seconds!")
 		if search_results:
+			print(f"Finished scraping {len(metadata)} results in {round(time.time()-start_time,2)} seconds!")
 			url = self.get_download_link(search_results[0].get_attribute("href") + "-online-for-free.html")
-			# print(metadata)
+			print("Link found.")
+			log(
+				# "\\n".join(metadata[list(metadata)[0]].values()) + \
+				# "--embed",
+				str(metadata[list(metadata)[0]]) + \
+				"--embed",
+				silent=False
+			)
 		else:
 			print("Error: No search results found!")
 		print(f"Finished all scraping in {round(time.time()-start_time,2)} seconds!")
 		return url
 
 	def run(self, search_query):
-		url = download_first_from_search(search_query)
+		url = self.download_first_from_search(search_query)
 		return url.get_attribute("src") if url else url
 
 
@@ -196,7 +207,7 @@ def check_for_captcha_solve(timeout=100):
 
 
 if __name__ == "__main__":
-	scraper = Scraper()
+	scraper = Scraper(minimize=False)
 	while True:
 		query = input("Enter a Title to search for:\n> ")
 		if query:

@@ -22,6 +22,7 @@ import download
 
 
 credentials = media.read_file("credentials.md", filter=True)
+scraper = Scraper()
 token = credentials[0]
 allowed_users = credentials[1:]
 channel_id = {
@@ -49,7 +50,12 @@ async def on_ready():
 	check_logs.start()
 	print(f"{bot.user} successfuly connected!")
 	await set_status("Free Movies on Plex!", discord.Status.online)
-	# await create_embed("The Lego Star Wars Holiday Special", "Movie", "https://static.gomovies-online.cam/dist/img/psJPyaWoWzu_KJHtTpHoeTls3VZG2_vuy9Ea8lIMpLhO5_9mqZbNL768dJng8lbo2m4xT1tCWN8ee-P1Uj2Lo-SDJ2I46so9NvUUI_LooWmT2FUY0D3spfdOg_4onRdn.jpg")
+	await create_embed({'data-filmname': "Zack Snyder's Justice League (Black and White)", 'data-year': '2021', 'data-imdb': 'IMDb: 8.1', 'data-duration': '242 min', 'data-country': 'United Kingdom', 'data-genre': 'Action, Adventure, Fantasy, Sci-Fi', 'data-descript': "Determined to ensure Superman's ultimate sacrifice was not in vain, Bruce Wayne aligns forces with Diana Prince with plans to recruit a team of met..."})
+	# await create_embed(
+	# 	"The Lego Star Wars Holiday Special",
+	# 	"Movie",
+	# 	"https://static.gomovies-online.cam/dist/img/psJPyaWoWzu_KJHtTpHoeTls3VZG2_vuy9Ea8lIMpLhO5_9mqZbNL768dJng8lbo2m4xT1tCWN8ee-P1Uj2Lo-SDJ2I46so9NvUUI_LooWmT2FUY0D3spfdOg_4onRdn.jpg"
+	# )
 
 @bot.listen("on_message")
 async def on_message(message):
@@ -72,12 +78,22 @@ async def check_logs(filename="log.txt"):
 	log_data = media.read_file(filename, filter=True)
 	media.write_file(filename, "### Beginning of message buffer from server ###\n")
 	if log_data:
-		for message in log_data:
-			if "--channel=" in message:
-				message = message.split(" --channel=")
-				await send(message[0], channel=message[1])
-			else:
-				await send(message)
+		message = "\n".join(log_data)
+		# print(message)
+		if "--channel=" in message:
+			message = message.split("--channel=")
+			await send(message[0], channel=message[1])
+		elif "--embed" in message:
+			metadata = eval(message.replace("--embed",""))
+			await create_embed(metadata)
+		else:
+			await send(message)
+		# for message in log_data:
+		# 	if "--channel=" in message:
+		# 		message = message.split(" --channel=")
+		# 		await send(message[0], channel=message[1])
+		# 	else:
+		# 		await send(message)
 
 
 #                   |
@@ -112,20 +128,20 @@ async def downloads(ctx, user: discord.User, *flags):
 async def search(ctx, *movie_name):
 	movie_name = " ".join(movie_name)
 	author = ctx.author.id
-	scraper = Scraper()
 	print(movie_name)
 	# TODO: make this multithreaded
 	if "https://gomovies-online." in movie_name:
 		await send("Downloading via direct link...")
-		url = scraper.get_download_link(movie_name).get_attribute("src")  # This would be a link not a query
+		url = scraper.get_download_link(movie_name)  # This would be a link not a query
 	else:
 		await send("Searching for matches...")
-		url = scraper.download_first_from_search(movie_name).get_attribute("src")  # Searches using a movie title
+		url = scraper.download_first_from_search(movie_name)  # Searches using a movie title
 
 	if url:
-		run_download(url, author)  # If there were any results found, then download
+		await send("Link found, downloading starting...")
+		run_download(url.get_attribute("src"), author)  # If there were any results found, then download
 	else:
-		await send("Error: No search results found!")
+		await send("**ERROR**: No search results found!")
 
 @bot.command()
 async def react(ctx):
@@ -143,13 +159,35 @@ async def solve(ctx, captcha_solution):
 #  Async Functions |
 #                  V
 
-async def create_embed(title, description, thumbnail_url, color=0xcbaf2f, channel="commands"):
+async def create_embed(metadata, color=0xcbaf2f, channel="commands"):
+	# description = (
+	# 	message["data-year"],
+	# 	message["data-imdb"],
+	# 	message["data-duration"],
+	# 	"Country: " + message["data-country"],
+	# 	message["data-genre"],
+	# 	message["data-descript"]
+	# )
+	# embed = discord.Embed(
+	# 	title=title,
+	# 	description=description,
+	# 	color=color
+	# )
+
+	# embed.set_thumbnail(url=thumbnail_url)
 	embed = discord.Embed(
-		title=title.title(),
-		description=description.capitalize(),
-		color=color
-	)
-	embed.set_thumbnail(url=thumbnail_url)
+			title=metadata["data-filmname"],
+			description="\U0000200B",
+			colour=color
+		)
+
+	embed.set_footer(text=metadata["data-descript"])
+	# embed.set_image(url="https://cdn.discordapp.com/attachments/520265639680671747/533389224913797122/rtgang.jpeg")
+	embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/520265639680671747/533389224913797122/rtgang.jpeg")
+	# embed.set_author(name="Author Name", icon_url="https://cdn.discordapp.com/attachments/520265639680671747/533389224913797122/rtgang.jpeg")
+	embed.add_field(name="\U0001F4C5", value=metadata["data-year"], inline=True)
+	embed.add_field(name="IMDb", value=metadata["data-imdb"], inline=True)
+	embed.add_field(name="\U0001F554", value=metadata["data-duration"], inline=True)
 	await bot.get_channel(channel_id[channel]).send(embed=embed)
 
 async def send(msg, channel="commands", silent=True):

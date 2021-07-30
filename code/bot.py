@@ -50,12 +50,7 @@ async def on_ready():
 	check_logs.start()
 	print(f"{bot.user} successfuly connected!")
 	await set_status("Free Movies on Plex!", discord.Status.online)
-	await create_embed({'data-filmname': "Zack Snyder's Justice League (Black and White)", 'data-year': '2021', 'data-imdb': 'IMDb: 8.1', 'data-duration': '242 min', 'data-country': 'United Kingdom', 'data-genre': 'Action, Adventure, Fantasy, Sci-Fi', 'data-descript': "Determined to ensure Superman's ultimate sacrifice was not in vain, Bruce Wayne aligns forces with Diana Prince with plans to recruit a team of met..."})
-	# await create_embed(
-	# 	"The Lego Star Wars Holiday Special",
-	# 	"Movie",
-	# 	"https://static.gomovies-online.cam/dist/img/psJPyaWoWzu_KJHtTpHoeTls3VZG2_vuy9Ea8lIMpLhO5_9mqZbNL768dJng8lbo2m4xT1tCWN8ee-P1Uj2Lo-SDJ2I46so9NvUUI_LooWmT2FUY0D3spfdOg_4onRdn.jpg"
-	# )
+	# await create_embed({'data-filmname': "Zack Snyder's Justice League (Black and White)", 'data-year': '2021', 'data-imdb': 'IMDb: 8.1', 'data-duration': '242 min', 'data-country': 'United Kingdom', 'data-genre': 'Action, Adventure, Fantasy, Sci-Fi', 'data-descript': "Determined to ensure Superman's ultimate sacrifice was not in vain, Bruce Wayne aligns forces with Diana Prince with plans to recruit a team of met...", "img":"https://static.gomovies-online.cam/dist/img/C97to1aFchTRotSn63m3yc6k-oA7ou6anY3ruU8Lf2WevlTvJjQks5i_z5fTnadgcYV7z9aVPQcKUVsAxMzkDleaTjfFbze08mdub0ZTXuq3y0XxXiUGmfEQFgfeMfN-.jpg"})
 
 @bot.listen("on_message")
 async def on_message(message):
@@ -125,10 +120,10 @@ async def downloads(ctx, user: discord.User, *flags):
 # 	if len(filename) > 1: filename = " ".join(filename)
 
 @bot.command(aliases=["add", "download"])
-async def search(ctx, *movie_name):
+async def download_first_result(ctx, *movie_name):
 	movie_name = " ".join(movie_name)
 	author = ctx.author.id
-	print(movie_name)
+	# print(movie_name)
 	# TODO: make this multithreaded
 	if "https://gomovies-online." in movie_name:
 		await send("Downloading via direct link...")
@@ -142,6 +137,24 @@ async def search(ctx, *movie_name):
 		run_download(url.get_attribute("src"), author)  # If there were any results found, then download
 	else:
 		await send("**ERROR**: No search results found!")
+
+@bot.command()
+async def search(ctx, *search_query):
+	search_query = " ".join(search_query)
+	author = ctx.author.id
+	await send("Searching for matches...")
+	# url = scraper.download_first_from_search(movie_name)  # Searches using a movie title
+	if search_query:
+		results, metadata = scraper.search(
+			"https://gomovies-online.cam/search/" + \
+			"-".join(search_query.split())
+		)
+		if results:
+			print(metadata)
+			for description in metadata:
+				await create_embed(description)
+		# await send("Link found, downloading starting...")
+		# run_download(url.get_attribute("src"), author)  # If there were any results found, then download
 
 @bot.command()
 async def react(ctx):
@@ -175,6 +188,7 @@ async def create_embed(metadata, color=0xcbaf2f, channel="commands"):
 	# )
 
 	# embed.set_thumbnail(url=thumbnail_url)
+	# print(metadata)
 	embed = discord.Embed(
 			title=metadata["data-filmname"],
 			description="\U0000200B",
@@ -183,7 +197,7 @@ async def create_embed(metadata, color=0xcbaf2f, channel="commands"):
 
 	embed.set_footer(text=metadata["data-descript"])
 	# embed.set_image(url="https://cdn.discordapp.com/attachments/520265639680671747/533389224913797122/rtgang.jpeg")
-	embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/520265639680671747/533389224913797122/rtgang.jpeg")
+	embed.set_thumbnail(url=metadata["img"])
 	# embed.set_author(name="Author Name", icon_url="https://cdn.discordapp.com/attachments/520265639680671747/533389224913797122/rtgang.jpeg")
 	embed.add_field(name="\U0001F4C5", value=metadata["data-year"], inline=True)
 	embed.add_field(name="IMDb", value=metadata["data-imdb"], inline=True)

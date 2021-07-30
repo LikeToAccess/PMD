@@ -60,6 +60,7 @@ class Scraper:
 				"data-country":  description.get_attribute("data-country"),
 				"data-genre":    description.get_attribute("data-genre"),
 				"data-descript": description.get_attribute("data-descript"),
+				"img":           description.find_element_by_tag_name("img").get_attribute("src")
 			}
 		# print(metadata)
 		return results, metadata
@@ -97,8 +98,9 @@ class Scraper:
 		self.driver.close()
 
 	def get_results_from_search(self):
-		elements = self.driver.find_elements_by_class_name("item_hd") + \
-				   self.driver.find_elements_by_class_name("item_series")
+		# elements = self.driver.find_elements_by_class_name("item_hd") + \
+		# 		   self.driver.find_elements_by_class_name("item_series")
+		elements = self.driver.find_elements_by_class_name("item_hd")
 		description = self.driver.find_elements_by_class_name("_smQamBQsETb")
 		return elements, description
 
@@ -175,10 +177,7 @@ class Scraper:
 			url = self.get_download_link(search_results[0].get_attribute("href") + "-online-for-free.html")
 			print("Link found.")
 			log(
-				# "\\n".join(metadata[list(metadata)[0]].values()) + \
-				# "--embed",
-				str(metadata[list(metadata)[0]]) + \
-				"--embed",
+				str(metadata[list(metadata)[0]]) + "--embed",
 				silent=False
 			)
 		else:

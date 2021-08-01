@@ -3,17 +3,17 @@
 # description       : Discord bot interface for interacting with the server
 # author            : LikeToAccess
 # email             : liketoaccess@protonmail.com
-# date              : 05-04-2021
-# version           : v1.0
+# date              : 08-01-2021
+# version           : v2.0
 # usage             : python main.py
 # notes             :
 # license           : MIT
 # py version        : 3.8.2 (must run on 3.6 or higher)
 #==============================================================================
-import os
+# import os
 from threading import Thread
 import discord
-import youtube_dl
+# import youtube_dl
 from discord.ext import commands, tasks
 from scraper import Scraper
 import config as cfg
@@ -36,7 +36,8 @@ bot = commands.Bot(command_prefix=
 		"`",
 		"~",
 		"-",
-		"please "
+		"please ",
+		"beta "
 	],
 	help_command=None, case_insensitive=True)
 
@@ -50,7 +51,6 @@ async def on_ready():
 	check_logs.start()
 	print(f"{bot.user} successfuly connected!")
 	await set_status("Free Movies on Plex!", discord.Status.online)
-	# await create_embed({'data-filmname': "Zack Snyder's Justice League (Black and White)", 'data-year': '2021', 'data-imdb': 'IMDb: 8.1', 'data-duration': '242 min', 'data-country': 'United Kingdom', 'data-genre': 'Action, Adventure, Fantasy, Sci-Fi', 'data-descript': "Determined to ensure Superman's ultimate sacrifice was not in vain, Bruce Wayne aligns forces with Diana Prince with plans to recruit a team of met...", "img":"https://static.gomovies-online.cam/dist/img/C97to1aFchTRotSn63m3yc6k-oA7ou6anY3ruU8Lf2WevlTvJjQks5i_z5fTnadgcYV7z9aVPQcKUVsAxMzkDleaTjfFbze08mdub0ZTXuq3y0XxXiUGmfEQFgfeMfN-.jpg"})
 
 @bot.listen("on_message")
 async def on_message(message):
@@ -63,8 +63,9 @@ async def on_message(message):
 		forced_resolution = message.content.split("--res=")[1]
 		cfg.write_attempts(int(forced_resolution))
 	author = message.author
-	link = message.content
-	run_download(link, author.id)
+	source_url = message.content
+	target_url, metadata = scraper.get_download_link(source_url)
+	run_download(target_url.get_attribute("src"), metadata, author.id)
 	# threaded_download = Thread(target=download.download, args=(link,author))
 	# threaded_download.start()
 
@@ -127,23 +128,24 @@ async def download_first_result(ctx, *movie_name):
 	# TODO: make this multithreaded
 	if "https://gomovies-online." in movie_name:
 		await send("Downloading via direct link...")
-		url = scraper.get_download_link(movie_name)  # This would be a link not a query
+		url, metadata = scraper.get_download_link(movie_name)  # This would be a link not a query
 	else:
 		await send("Searching for matches...")
-		url = scraper.download_first_from_search(movie_name)  # Searches using a movie title
+		url, metadata = scraper.download_first_from_search(movie_name)  # Searches using a movie title
 
 	if url:
+		# If there were any results found, then download
 		await send("Link found, downloading starting...")
-		run_download(url.get_attribute("src"), author)  # If there were any results found, then download
+		run_download(url.get_attribute("src"), metadata[list(metadata)[0]], author)
 	else:
 		await send("**ERROR**: No search results found!")
 
 @bot.command()
 async def search(ctx, *search_query):
 	search_query = " ".join(search_query)
-	author = ctx.author.id
+	# author = ctx.author.id
 	await send("Searching for matches...")
-	# url = scraper.download_first_from_search(movie_name)  # Searches using a movie title
+	# url, metadata = scraper.download_first_from_search(movie_name)  # Searches using a movie title
 	if search_query:
 		results, metadata = scraper.search(
 			"https://gomovies-online.cam/search/" + \
@@ -191,14 +193,12 @@ async def create_embed(metadata, color=0xcbaf2f, channel="commands"):
 	# print(metadata)
 	embed = discord.Embed(
 			title=metadata["data-filmname"],
-			description="\U0000200B",
-			colour=color
+			description=metadata["data-genre"],
+			color=color
 		)
 
 	embed.set_footer(text=metadata["data-descript"])
-	# embed.set_image(url="https://cdn.discordapp.com/attachments/520265639680671747/533389224913797122/rtgang.jpeg")
 	embed.set_thumbnail(url=metadata["img"])
-	# embed.set_author(name="Author Name", icon_url="https://cdn.discordapp.com/attachments/520265639680671747/533389224913797122/rtgang.jpeg")
 	embed.add_field(name="\U0001F4C5", value=metadata["data-year"], inline=True)
 	embed.add_field(name="IMDb", value=metadata["data-imdb"], inline=True)
 	embed.add_field(name="\U0001F554", value=metadata["data-duration"], inline=True)
@@ -222,8 +222,8 @@ async def set_status(activity, status=discord.Status.online):
 #  Functions |
 #            V
 
-def run_download(link, author):
-	threaded_download = Thread(target=download.download, args=(link,author))
+def run_download(link, metadata, author):
+	threaded_download = Thread(target=download.download, args=(link,metadata,author))
 	threaded_download.start()
 
 def run():

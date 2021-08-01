@@ -97,11 +97,11 @@ class Scraper:
 	def close(self):
 		self.driver.close()
 
-	def get_results_from_search(self):
+	def get_results_from_search(self, decription_class="_smQamBQsETb"):
 		# elements = self.driver.find_elements_by_class_name("item_hd") + \
 		# 		   self.driver.find_elements_by_class_name("item_series")
 		elements = self.driver.find_elements_by_class_name("item_hd")
-		description = self.driver.find_elements_by_class_name("_smQamBQsETb")
+		description = self.driver.find_elements_by_class_name(decription_class)  # _skQummZWZxE
 		return elements, description
 
 	# def maximize(self):
@@ -147,18 +147,19 @@ class Scraper:
 			solved_captcha = check_for_captcha_solve()
 
 			if not solved_captcha:
-				return False
+				return False, False
 
 			captcha_input.send_keys(solved_captcha)
 			captcha_submit.click()
 			return self.get_download_link(source_url, timeout)
 
+		metadata = self.get_results_from_search("_skQummZWZxE")[1]
 		target_url = self.wait_until_element(By.TAG_NAME, "video", timeout)
 		self.driver.execute_script(
 			"videos = document.querySelectorAll(\"video\"); for(video of videos) {video.pause()}"
 		)
 		# print(target_url.get_attribute("src"))
-		return target_url
+		return target_url, metadata
 
 	# '''Demitri's Holy Contribution'''
 	# def get_movie(self, name):
@@ -174,7 +175,9 @@ class Scraper:
 		)
 		if search_results:
 			print(f"Finished scraping {len(metadata)} results in {round(time.time()-start_time,2)} seconds!")
-			url = self.get_download_link(search_results[0].get_attribute("href") + "-online-for-free.html")
+			url = self.get_download_link(
+				search_results[0].get_attribute("href") + "-online-for-free.html"
+			)[0]
 			print("Link found.")
 			log(
 				str(metadata[list(metadata)[0]]) + "--embed",
@@ -183,10 +186,10 @@ class Scraper:
 		else:
 			print("Error: No search results found!")
 		print(f"Finished all scraping in {round(time.time()-start_time,2)} seconds!")
-		return url
+		return url, metadata
 
 	def run(self, search_query):
-		url = self.download_first_from_search(search_query)
+		url = self.download_first_from_search(search_query)[0]
 		return url.get_attribute("src") if url else url
 
 

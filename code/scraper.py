@@ -179,10 +179,7 @@ class Scraper:
 				search_results[0].get_attribute("href") + "-online-for-free.html"
 			)[0]
 			print("Link found.")
-			log(
-				str(metadata[list(metadata)[0]]) + "--embed",
-				silent=False
-			)
+			log(str(metadata[list(metadata)[0]]) + "--embed")
 		else:
 			print("Error: No search results found!")
 		print(f"Finished all scraping in {round(time.time()-start_time,2)} seconds!")

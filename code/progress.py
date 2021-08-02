@@ -28,7 +28,7 @@ def file_size(filename, count, start_time=None, target_size=None):
 		eta = strftime("%Hh %Mm %Ss", gmtime((target_size-size)/(speed/8*1024*1024)))
 		rounded_size, target_size = int(rounded_size), int(target_size/1024/1024)
 		msg = f"Downloading {filename} at ~{speed} Mbps, ETA: {eta} ({rounded_size}/{target_size} MB)."
-		print(msg)
-		log(msg)
+		# print(msg)
+		log(msg, silent=False)
 
 	return size

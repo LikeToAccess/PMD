@@ -13,7 +13,7 @@
 import time
 import os
 from scraper import Scraper
-import requests as req
+import requests
 from requests.exceptions import *
 from urllib3.exceptions import SSLError
 import config as cfg
@@ -26,9 +26,27 @@ headers = {"user-agent": cfg.user_agent}
 quality = cfg.video_quality
 media_files = media.Media("MOVIES")
 home = os.getcwd()
-req.adapters.HTTPAdapter(max_retries=2)
-start_time = 0
+requests.adapters.HTTPAdapter(max_retries=2)
 
+
+def url_format(url, target_res):
+	for current_res in quality:
+		url = url.replace(f"/{current_res}?name=",f"/{target_res}?name=")
+		url = url.replace(f"_{current_res}&token=ip=",f"_{target_res}&token=ip=")
+	return url
+
+def validate_url(url, target_res):
+	url = url_format(url, target_res)
+	# print(f"URL:      {url}")
+	# print(f"METADATA: {len(metadata)}")
+	# print(f"AUTHOR:   {author}")
+	# print(url == str(url))
+	request = requests.get(url, headers=headers, stream=True, timeout=(30,60))
+	status_code = request.status_code
+	print(f"STATUS for {target_res}p: {status_code}")
+	if status_code == 200:
+		return True, request
+	return status_code, request
 
 def make_directory():
 	if media_files.path != "MOVIES":
@@ -44,23 +62,63 @@ def size(filename):
 	file_size = os.stat(filename).st_size
 	return file_size
 
-def download(url, metadata, author):
-	# Function should return True when the download is complete and False if it perminantly failed
-	if not url:
-		log("ERROR: No URL! Maybe there were no search results?", silent=False)
-		return False
-	if not isinstance(url, str):
-		url = url.get_attribute("src")
 
-	print(f"URL:      {url}")
-	print(f"METADATA: {len(metadata)}")
-	print(f"AUTHOR:   {author}")
-	# print(url == str(url))
+class Download:
+	def __init__(self, url, metadata, author):
+		self.url = url
+		self.metadata = metadata
+		self.author = author
 
-	return True
+	def best_quality(self, url):
+		if not url:
+			log("ERROR: No URL! Maybe there were no search results?", silent=False)
+			return False, None, None
+		if not isinstance(url, str):
+			url = url.get_attribute("src")
+
+		valid_resolutions = []
+		for target_res in quality:
+			valid_resolution, request = validate_url(url, target_res)
+			valid_resolutions.append(valid_resolution)
+			if valid_resolutions[-1] is True:
+				url = url_format(url, target_res)
+				break
+			if valid_resolutions[-1] == "403":
+				filmname = self.metadata["data-filmname"]
+				log(f"ERROR: Link expired while scraping \"{filmname}\".")
+				return False, None, None
+		if True not in valid_resolutions:
+			log(f"ERROR: Status code {valid_resolutions[-1]}.")
+			return False, None, None
+		return url, request, target_res
+
+	def run(self, resolution_override=None):
+		# Function should return True when the download is complete and False if it perminantly failed
+		self.url, request, resolution = self.best_quality(self.url)
+		if self.url is False:
+			return False
+
+		print(f"DEBUG: {self.url}")
+		# print(request.status_code)
+		filmname = self.metadata["data-filmname"]
+		year = self.metadata["data-year"]
+		absolute_path = f"MOVIES/{filmname} ({year}).crdownload"
+		# target_size = request.headers.get("content-length", 0)
+		start_time = time.time()
+		stream.download_file(
+			request,
+			absolute_path,
+			(
+				resolution_override if resolution_override else resolution
+			),
+			start_time=start_time
+		)
+
+		return True
 
 
 if __name__ == "__main__":
 	scraper = Scraper()
 	data = scraper.download_first_from_search(input("Enter a Title to search for:\n> "))
-	download(data[0], data[1], "0")
+	download = Download(data[0], data[1], "0")
+	download.run()

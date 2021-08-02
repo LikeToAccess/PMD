@@ -89,7 +89,7 @@ def size(filename):
 	file_size = os.stat(filename).st_size
 	return file_size
 
-def download(url, author):
+def download(url, base_url, author):
 	global start_time
 
 	data = check(url, base_url, author=author) if url else url

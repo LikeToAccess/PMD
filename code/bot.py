@@ -222,8 +222,9 @@ async def set_status(activity, status=discord.Status.online):
 #  Functions |
 #            V
 
-def run_download(link, metadata, author):
-	threaded_download = Thread(target=download.download, args=(link,metadata,author))
+def run_download(url, metadata, author):
+	download_function = download.Download(url, metadata, author)
+	threaded_download = Thread(target=download_function.run)
 	threaded_download.start()
 
 def run():

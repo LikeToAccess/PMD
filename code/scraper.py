@@ -91,16 +91,56 @@ class Scraper:
 				self.open_link(url)
 			self.first_launch = False
 
+	def microcenter(self, url):
+		self.open_link(url)
+		items = {}
+		results = self.driver.find_elements(
+			By.XPATH, "//*[@class=\"product_wrapper\"]"
+		)
+		for result in results:
+			# Normal advertised Sale Price
+			try: price = result.find_element(
+					By.XPATH, "./div[2]/div/div[2]/div[1]/span").text
+			except NoSuchElementException: price = False
+
+			# Price after mail-in Rebate
+			try: rebate_price = result.find_element(
+					By.XPATH, "./div[2]/div/div[2]/div[2]").text
+			except NoSuchElementException: rebate_price = False
+
+			# Price for Open Boxed items
+			try: clearance_price = result.find_element(
+					By.XPATH, "./div[2]/div/div[2]/div[3]/span").text
+			except NoSuchElementException: clearance_price = False
+
+			# Product SKU
+			sku = result.find_element(
+					By.XPATH, "./div[2]/div/div[1]/p").text[5:]
+			# //*[@id="pwrapper_1"]/div[2]/div/div[1]/p
+
+			print(f"SKU: {sku}")
+			print(f"Price:           {price}")
+			print(f"Rebate Price:    {rebate_price if rebate_price else False}")
+			print(f"Clearance Price: {clearance_price}\n")
+
+			items[sku] = {
+				"price": price,
+				"rebate_price": rebate_price,
+				"clearance_price": clearance_price,
+			}
+
+		return items
+
 	def current_url(self):
 		return self.driver.current_url
 
 	def close(self):
 		self.driver.close()
 
-	def get_results_from_search(self, decription_class="_smQamBQsETb"):
+	def get_results_from_search(self, element_class="item_hd", decription_class="_smQamBQsETb"):
 		# elements = self.driver.find_elements_by_class_name("item_hd") + \
 		# 		   self.driver.find_elements_by_class_name("item_series")
-		elements = self.driver.find_elements_by_class_name("item_hd")
+		elements = self.driver.find_elements_by_class_name(element_class)
 		description = self.driver.find_elements_by_class_name(decription_class)  # _skQummZWZxE
 		return elements, description
 
@@ -192,7 +232,7 @@ class Scraper:
 
 def check_for_captcha_solve(timeout=100):
 	if __name__ == "__main__":
-			media.write_file("captcha.txt", input("Solve the captcha:\n> "))
+		media.write_file("captcha.txt", input("Solve the captcha:\n> "))
 
 	filename = "captcha.txt"
 	for half_second in range(timeout*2):

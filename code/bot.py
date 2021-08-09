@@ -136,6 +136,7 @@ async def download_first_result(ctx, *movie_name):
 	if url:
 		# If there were any results found, then download
 		await send("Link found, downloading starting...")
+		print(metadata)
 		run_download(url.get_attribute("src"), metadata[list(metadata)[0]], author)
 	else:
 		await send("**ERROR**: No search results found!")

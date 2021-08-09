@@ -102,7 +102,19 @@ class Download:
 		# print(request.status_code)
 		filmname = self.metadata["data-filmname"]
 		year = self.metadata["data-year"]
-		absolute_path = f"MOVIES/{filmname} ({year}).crdownload"
+		print(f"DEBUG: {filmname}")
+		if "Season" in filmname and "Episode" in filmname:
+			print("Media is detected as TV Show.")
+			show_title = filmname.split(" - ")[0]
+			season = filmname.split(" - Season ")[1].split(" Episode")[0]
+			season = season if len(season) >= 2 else "0" + season
+			episode = filmname.split(" Episode ")[1].split(": ")[0]
+			episode_title = filmname.split(": ")[1]
+			absolute_path = f"TV SHOWS/{show_title}/Season {season}/{show_title} - s{season}ep{episode} - {episode_title}.mp4"
+		else:
+			print("Media is detected as Movie/Film.")
+			absolute_path = f"MOVIES/{filmname} ({year})/{filmname} ({year}).crdownload"
+		print(absolute_path)
 		# target_size = request.headers.get("content-length", 0)
 		start_time = time.time()
 		stream.download_file(

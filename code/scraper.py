@@ -98,9 +98,9 @@ class Scraper:
 		self.driver.close()
 
 	def get_results_from_search(self, decription_class="_smQamBQsETb"):
-		# elements = self.driver.find_elements_by_class_name("item_hd") + \
-		# 		   self.driver.find_elements_by_class_name("item_series")
-		elements = self.driver.find_elements_by_class_name("item_hd")
+		elements = self.driver.find_elements_by_class_name("item_hd") + \
+				   self.driver.find_elements_by_class_name("item_series")
+		# elements = self.driver.find_elements_by_class_name("item_hd")
 		description = self.driver.find_elements_by_class_name(decription_class)  # _skQummZWZxE
 		return elements, description
 

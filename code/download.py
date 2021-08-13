@@ -10,14 +10,14 @@
 # license           : MIT
 # py version        : 3.8.2 (must run on 3.6 or higher)
 #==============================================================================
-import time
+# import time
 import os
 from scraper import Scraper
 import requests
 from requests.exceptions import *
 from urllib3.exceptions import SSLError
+from stream import Stream
 import config as cfg
-import stream
 import media
 from media import log
 
@@ -48,19 +48,13 @@ def validate_url(url, target_res):
 		return True, request
 	return status_code, request
 
-def make_directory():
-	if media_files.path != "MOVIES":
-		root_path = media_files.path.split("/")[0]
-		if not os.path.isdir(root_path + \
-			f"/{media_files.show_title}"): os.mkdir(root_path + \
-			f"/{media_files.show_title}")
-		if not os.path.isdir(root_path + \
-			f"/{media_files.show_title}/Season {media_files.season}"): os.mkdir(root_path + \
-			f"/{media_files.show_title}/Season {media_files.season}")
-
-def size(filename):
-	file_size = os.stat(filename).st_size
-	return file_size
+# def make_directory():
+# 	if media_files.path != "MOVIES":
+# 		root_path = media_files.path.split("/")[0]
+# 		if not os.path.isdir(root_path + f"/{media_files.show_title}"):
+# 			os.mkdir(root_path + f"/{media_files.show_title}")
+# 		if not os.path.isdir(root_path + f"/{media_files.show_title}/Season {media_files.season}"):
+# 			os.mkdir(root_path + f"/{media_files.show_title}/Season {media_files.season}")
 
 
 class Download:
@@ -98,11 +92,12 @@ class Download:
 		if self.url is False:
 			return False
 
-		print(f"DEBUG: {self.url}")
+		# print(f"DEBUG: {self.url}")
 		# print(request.status_code)
+		# print(self.metadata)
 		filmname = self.metadata["data-filmname"]
 		year = self.metadata["data-year"]
-		print(f"DEBUG: {filmname}")
+		# print(f"DEBUG: {filmname}")
 		if "Season" in filmname and "Episode" in filmname:
 			print("Media is detected as TV Show.")
 			show_title = filmname.split(" - ")[0]
@@ -110,21 +105,22 @@ class Download:
 			season = season if len(season) >= 2 else "0" + season
 			episode = filmname.split(" Episode ")[1].split(": ")[0]
 			episode_title = filmname.split(": ")[1]
-			absolute_path = f"TV SHOWS/{show_title}/Season {season}/{show_title} - s{season}ep{episode} - {episode_title}.mp4"
+			filename = f"{show_title} - s{season}ep{episode} - {episode_title}.crdownload"
+			absolute_path = f"TV SHOWS/{show_title}/Season {season}/{filename}"
 		else:
 			print("Media is detected as Movie/Film.")
 			absolute_path = f"MOVIES/{filmname} ({year})/{filmname} ({year}).crdownload"
-		print(absolute_path)
+		# print(absolute_path)
 		# target_size = request.headers.get("content-length", 0)
-		start_time = time.time()
-		stream.download_file(
+		stream = Stream(
 			request,
 			absolute_path,
 			(
 				resolution_override if resolution_override else resolution
 			),
-			start_time=start_time
 		)
+		# print(f"DEBUG: Starting the download for, {absolute_path}...")
+		stream.stream()
 
 		return True
 
@@ -132,5 +128,10 @@ class Download:
 if __name__ == "__main__":
 	scraper = Scraper()
 	data = scraper.download_first_from_search(input("Enter a Title to search for:\n> "))
-	download = Download(data[0], data[1], "0")
+	if None in data:
+		print("No results!")
+		scraper.close()
+		quit()
+	# metadata[list(metadata)[0]]
+	download = Download(data[0], data[1][list(data[1])[0]], "0")
 	download.run()

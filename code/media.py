@@ -20,6 +20,10 @@ def log(msg, silent=True):
 	if not silent:
 		print(msg)
 
+def size(filename):
+	file_size = os.stat(filename).st_size
+	return file_size
+
 def credit(author, filename, resolution, file_size):
 	msg = f"{filename}|{resolution}|{file_size}"
 	append_file(f"{author}.txt", msg)

@@ -10,29 +10,58 @@
 # license           : MIT
 # py version        : 3.8.2 (must run on 3.6 or higher)
 #==============================================================================
+import time
+import os
 import config as cfg
 import progress
 from media import log
-import media
 
 
 headers = {"user-agent": cfg.user_agent}
 quality = cfg.video_quality
 
 
-def download_file(request, filename, resolution, chunk_size=cfg.stream_chunk_size, start_time=None):
-	target_size = request.headers.get("content-length", 0)
-	# log(f"DEBUG: Target Size is {target_size}.")
-	# resolution = quality[int(resolution)]
-	with request as r:
-		r.raise_for_status()
-		with open(filename, "wb") as file:
-			title = media.format_title(filename)
-			msg = f"Downloading {title} in {resolution}p ({round(int(target_size)/1024/1024,2)} MB)..."
-			# print(msg)
+class Stream:
+	def __init__(self, request, filename, resolution, chunk_size=cfg.stream_chunk_size):
+		self.request = request
+		self.filename = filename
+		self.resolution = resolution
+		self.chunk_size = chunk_size
+		self.target_size = int(request.headers.get("content-length", 0))
+
+		# log(f"DEBUG: Target Size is {target_size}.")
+		# resolution = quality[int(resolution)]
+
+	def write(self):
+		self.verify_path()
+		with open(self.filename, "wb") as file:
+			title = self.filename.split(".")[0]
+			size_MB = round(self.target_size/1024/1024,2)
+			start_time = time.time()
+			msg = f"Downloading {title} in {self.resolution}p ({size_MB} MB)..."
 			log(msg, silent=False)
-			# cfg.reset_attempts()
-			for count, chunk in enumerate(request.iter_content(chunk_size=chunk_size)):
+			for count, chunk in enumerate(self.request.iter_content(chunk_size=self.chunk_size)):
 				file.write(chunk)
-				progress.file_size(filename, count, start_time=start_time, target_size=target_size)
-	return filename
+				progress.file_size(
+					self.filename,
+					count,
+					start_time,
+					target_size=self.target_size
+				)
+
+	def verify_path(self):
+		# MOVIES/Black Widow (2021)/Black Widow (2021).crdownload
+		path = "/".join(self.filename.split("/")[:-1])
+		path_exists = os.path.isdir(path)
+		if not path_exists:
+			os.makedirs(path)
+		return path_exists
+
+	def stream(self):
+		with self.request as r:
+			r.raise_for_status()
+			self.write()
+
+
+if __name__ == "__main__":
+	print(Stream(None, "MOVIES/Black Widow (2021)/Black Widow (2021).crdownload", 1080).verify_path())

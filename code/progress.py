@@ -4,31 +4,40 @@
 # author            : LikeToAccess
 # email             : liketoaccess@protonmail.com
 # date              : 05-04-2021
-# version           : v1.0
+# version           : v1.1
 # usage             : python main.py
 # notes             :
 # license           : MIT
 # py version        : 3.8.2 (must run on 3.6 or higher)
 #==============================================================================
-from time import time, strftime, gmtime
-import download
+import time
+# from download import size as get_size
 import media
 from media import log
 
 
 def file_size(filename, count, start_time=None, target_size=None):
-	target_size = int(target_size)
-	size = download.size(filename)
-	rounded_size = round(size/1024/1024, 2)
+	size = media.size(filename)
+	size_MB = round(size/1024/1024, 2)
 	# print(f"DEBUG: tg_s:{target_size}, s:{size}, r_s:{rounded_size}")
 	if ((count+1) % 25 == 0 or count == 3) and start_time and target_size:
 		filename = media.format_title(filename)
-		speed = round(rounded_size/(time()-start_time) * 8, 2)
-		# print(f"DEBUG: {(target_size-size)/(speed/8*1024*1024)}<-- ETA in s")
-		eta = strftime("%Hh %Mm %Ss", gmtime((target_size-size)/(speed/8*1024*1024)))
-		rounded_size, target_size = int(rounded_size), int(target_size/1024/1024)
-		msg = f"Downloading {filename} at ~{speed} Mbps, ETA: {eta} ({rounded_size}/{target_size} MB)."
+		remaining_size = target_size-size
+		speed = size/(time.time()-start_time)
+		speed_MB = round(speed*8/(1024*1024), 2)
+		ETA = time.strftime("%Hh %Mm %Ss", time.gmtime(remaining_size/speed))
+		size_MB, target_size = int(size_MB), int(target_size/1024/1024)
+		msg = f"Downloading {filename} at ~{speed_MB} Mbps, ETA: {ETA} ({size_MB}/{target_size} MB)."
 		# print(msg)
 		log(msg, silent=False)
 
 	return size
+
+# TODO: Fix: "FileNotFoundError: [Errno 2] No such file or directory"
+# Check if a the filename/directory exists and create the necissary folders. (recursivly maybe?)
+
+
+if __name__ == "__main__":
+	start_time_debug = time.time()
+	time.sleep(1)
+	file_size("chromedriver", 3, start_time_debug-time.time(), 100000000)

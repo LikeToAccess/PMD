@@ -44,10 +44,23 @@ class Scraper:
 		if minimize:
 			self.driver.minimize_window()
 
-	def search(self, url):
+	def search(self, url, movie=True):
+		if movie:
+			element_class = "item_hd"
+			description_class = "_smQamBQsETb"
+		else:
+			element_class = "item_series"
+			description_class = "_skQummZWZxE"
 		self.open_link(url)
-		results, descriptions = self.get_results_from_search()
-		if not results: return None, None
+		results, descriptions = self.get_results_from_search(
+			element_class=element_class,
+			decription_class=description_class
+		)
+		if not results:
+			if not movie:
+				# print("Movie is False and no results were found")
+				return None, None
+			return self.search(url, movie=False)
 		# print(f"DEBUG: {descriptions[0].text}")
 		metadata = {}
 		for description in descriptions:
@@ -137,17 +150,10 @@ class Scraper:
 	def close(self):
 		self.driver.close()
 
-<<<<<<< HEAD
-	def get_results_from_search(self, decription_class="_smQamBQsETb"):
-		elements = self.driver.find_elements_by_class_name("item_hd") + \
-				   self.driver.find_elements_by_class_name("item_series")
-		# elements = self.driver.find_elements_by_class_name("item_hd")
-=======
 	def get_results_from_search(self, element_class="item_hd", decription_class="_smQamBQsETb"):
 		# elements = self.driver.find_elements_by_class_name("item_hd") + \
 		# 		   self.driver.find_elements_by_class_name("item_series")
 		elements = self.driver.find_elements_by_class_name(element_class)
->>>>>>> origin/main
 		description = self.driver.find_elements_by_class_name(decription_class)  # _skQummZWZxE
 		return elements, description
 

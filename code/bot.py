@@ -11,6 +11,7 @@
 # py version        : 3.8.2 (must run on 3.6 or higher)
 #==============================================================================
 # import os
+import time
 from threading import Thread
 import discord
 # import youtube_dl
@@ -124,7 +125,6 @@ async def downloads(ctx, user: discord.User, *flags):
 async def download_first_result(ctx, *movie_name):
 	movie_name = " ".join(movie_name)
 	author = ctx.author.id
-	# print(movie_name)
 	# TODO: make this multithreaded
 	if "https://gomovies-online." in movie_name:
 		await send("Downloading via direct link...")
@@ -146,16 +146,21 @@ async def search(ctx, *search_query):
 	search_query = " ".join(search_query)
 	# author = ctx.author.id
 	await send("Searching for matches...")
+	start_time = time.time()
 	# url, metadata = scraper.download_first_from_search(movie_name)  # Searches using a movie title
 	if search_query:
 		results, metadata = scraper.search(
 			"https://gomovies-online.cam/search/" + \
 			"-".join(search_query.split())
 		)
-		if results:
-			print(metadata)
+		print(f"Finished scraping search results in {round(time.time()-start_time,2)}.")
+
+		if results and metadata:
 			for description in metadata:
-				await create_embed(description)
+				# print(description)
+				await create_embed(metadata[description])
+		else:
+			await send("**ERROR**: No search results found!")
 		# await send("Link found, downloading starting...")
 		# run_download(url.get_attribute("src"), author)  # If there were any results found, then download
 

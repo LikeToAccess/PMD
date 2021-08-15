@@ -10,11 +10,9 @@
 # license           : MIT
 # py version        : 3.8.2 (must run on 3.6 or higher)
 #==============================================================================
-# import os
 import time
 from threading import Thread
 import discord
-# import youtube_dl
 from discord.ext import commands, tasks
 from scraper import Scraper
 import config as cfg
@@ -73,24 +71,38 @@ async def on_message(message):
 @tasks.loop(seconds=0.5)
 async def check_logs(filename="log.txt"):
 	log_data = media.read_file(filename, filter=True)
-	media.write_file(filename, "### Beginning of message buffer from server ###\n")
 	if log_data:
-		message = "\n".join(log_data)
-		# print(message)
-		if "--channel=" in message:
-			message = message.split("--channel=")
-			await send(message[0], channel=message[1])
-		elif "--embed" in message:
-			metadata = eval(message.replace("--embed",""))
-			await create_embed(metadata)
-		else:
-			await send(message)
-		# for message in log_data:
-		# 	if "--channel=" in message:
-		# 		message = message.split(" --channel=")
-		# 		await send(message[0], channel=message[1])
-		# 	else:
-		# 		await send(message)
+		media.write_file(filename, "### Beginning of message buffer from server ###\n")
+		# message = "\n".join(log_data)
+		# # print(message)
+		# if "--channel=" in message:
+		# 	message = message.split("--channel=")
+		# 	await send(message[0], channel=message[1])
+		# if "--embed" in message:
+		# 	metadata = eval(message.replace("--embed",""))
+		# 	await create_embed(metadata)
+		# else:
+		# 	await send(message)
+		# # for message in log_data:
+		# # 	if "--channel=" in message:
+		# # 		message = message.split(" --channel=")
+		# # 		await send(message[0], channel=message[1])
+		# # 	else:
+		# # 		await send(message)
+
+		bulk_message = []
+		for message in log_data:
+			if "--embed" in message:
+				metadata = eval(message.replace("--embed",""))
+				await create_embed(metadata)
+			elif "--channel=" in message:
+					message = message.split("--channel=")
+					await send(message[0], channel=message[1])
+			else:
+				bulk_message.append(message)
+
+		if bulk_message: await send("\n".join(bulk_message))
+
 
 
 #                   |
@@ -109,10 +121,12 @@ async def downloads(ctx, user: discord.User, *flags):
 		total_size += float(line[2])
 	if "--list" in flags:
 		await send("{}".format("\n".join(movies)))
+	author = user.display_name
+	total_size = (
+		f"{int(round(total_size, 0))} MB" if total_size < 2048 else f"{round(total_size/1024, 2)} GB"
+	)
 	await send(
-		f"{user.display_name} has downloaded \
-		{len(movies)} movies/episodes totaling \
-		{round(total_size,0)} MB."
+		f"{author} has downloaded {len(movies)} movies/episodes totaling {total_size}."
 	)
 
 # # TODO
@@ -125,7 +139,6 @@ async def downloads(ctx, user: discord.User, *flags):
 async def download_first_result(ctx, *movie_name):
 	movie_name = " ".join(movie_name)
 	author = ctx.author.id
-	# TODO: make this multithreaded
 	if "https://gomovies-online." in movie_name:
 		await send("Downloading via direct link...")
 		url, metadata = scraper.get_download_link(movie_name)  # This would be a link not a query
@@ -136,7 +149,7 @@ async def download_first_result(ctx, *movie_name):
 	if url:
 		# If there were any results found, then download
 		await send("Link found, downloading starting...")
-		print(metadata)
+		# print(metadata)
 		run_download(url.get_attribute("src"), metadata[list(metadata)[0]], author)
 	else:
 		await send("**ERROR**: No search results found!")
@@ -149,11 +162,19 @@ async def search(ctx, *search_query):
 	start_time = time.time()
 	# url, metadata = scraper.download_first_from_search(movie_name)  # Searches using a movie title
 	if search_query:
+		# try:
+		# 	results, metadata = scraper.search(
+		# 		"https://gomovies-online.cam/search/" + \
+		# 		"-".join(search_query.split())
+		# 	)
+		# except TimeoutException as e:
+		# 	await send(error(e))
+		# 	return False
 		results, metadata = scraper.search(
 			"https://gomovies-online.cam/search/" + \
 			"-".join(search_query.split())
 		)
-		print(f"Finished scraping search results in {round(time.time()-start_time,2)}.")
+		print(f"Finished scraping search results in {round(time.time()-start_time,2)} seconds!")
 
 		if results and metadata:
 			for description in metadata:

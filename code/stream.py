@@ -14,6 +14,7 @@ import time
 import os
 import config as cfg
 import progress
+import media
 from media import log
 
 
@@ -61,6 +62,10 @@ class Stream:
 		with self.request as r:
 			r.raise_for_status()
 			self.write()
+			media.rename(self.filename, self.filename.replace(".crdownload",".mp4"))
+			# size_MB = round(self.target_size/1024/1024,2)
+			# log(f"Finished download of {self.filename} in {self.resolution}p ({size_MB} MB).")
+			# media.credit(author, filename=filename, resolution=resolution, file_size=file_size)
 
 
 if __name__ == "__main__":

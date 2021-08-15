@@ -105,11 +105,12 @@ class Download:
 			season = season if len(season) >= 2 else "0" + season
 			episode = filmname.split(" Episode ")[1].split(": ")[0]
 			episode_title = filmname.split(": ")[1]
-			filename = f"{show_title} - s{season}ep{episode} - {episode_title}.crdownload"
-			absolute_path = f"TV SHOWS/{show_title}/Season {season}/{filename}"
+			filename = f"{show_title} - s{season}ep{episode} - {episode_title}"
+			absolute_path = f"TV SHOWS/{show_title}/Season {season}/{filename}.crdownload"
 		else:
 			print("Media is detected as Movie/Film.")
-			absolute_path = f"MOVIES/{filmname} ({year})/{filmname} ({year}).crdownload"
+			filename = f"{filmname} ({year})"
+			absolute_path = f"MOVIES/{filename}/{filename}.crdownload"
 		# print(absolute_path)
 		# target_size = request.headers.get("content-length", 0)
 		stream = Stream(
@@ -121,6 +122,10 @@ class Download:
 		)
 		# print(f"DEBUG: Starting the download for, {absolute_path}...")
 		stream.stream()
+		filename = filename.replace(".crdownload", ".mp4")
+		file_size = round(int(request.headers.get("content-length", 0))/1024/1024,2)
+		media.credit(self.author, filename=filename, resolution=resolution, file_size=file_size)
+		log(f"Finished download of {filename} in {resolution}p ({file_size} MB).")
 
 		return True
 

@@ -12,6 +12,7 @@
 #==============================================================================
 import time
 import os
+import sys
 import crop
 import media
 from media import log
@@ -45,6 +46,8 @@ class Scraper:
 			self.driver.minimize_window()
 
 	def search(self, url, movie=True):
+		# print(url)
+		# print(movie)
 		if movie:
 			element_class = "item_hd"
 			description_class = "_smQamBQsETb"
@@ -61,12 +64,11 @@ class Scraper:
 				# print("Movie is False and no results were found")
 				return None, None
 			return self.search(url, movie=False)
-		# print(f"DEBUG: {descriptions[0].text}")
 		metadata = {}
 		for description in descriptions:
 			if description.get_attribute("data-filmname") != description.text: continue
 			metadata[description.text] = {
-				"data-filmname": description.get_attribute("data-filmname"),
+				"data-filmname": description.get_attribute("data-filmname").replace(":",""),
 				"data-year":     description.get_attribute("data-year"),
 				"data-imdb":     description.get_attribute("data-imdb"),
 				"data-duration": description.get_attribute("data-duration"),
@@ -87,6 +89,17 @@ class Scraper:
 				)
 			)
 		)
+		# try:
+		# 	element = wait.until(
+		# 		EC.presence_of_element_located(
+		# 			(
+		# 				stratagy, locator
+		# 			)
+		# 		)
+		# 	)
+		# except TimeoutException as e:
+		# 	log(error(e))
+		# 	raise e
 		return element
 
 	def open_link(self, url):
@@ -184,11 +197,7 @@ class Scraper:
 
 		return captcha_image, captcha_input, captcha_submit
 
-	def get_download_link(self, source_url, timeout=10):
-		source_url = source_url.split(".html")[0] + ".html"
-		if not source_url.endswith("-online-for-free.html"):
-			source_url += "-online-for-free.html"
-		self.open_link(source_url)
+	def run_captcha_functions(self):
 		captcha_image, captcha_input, captcha_submit = self.check_captcha()
 		if captcha_image:
 			time.sleep(0.25)
@@ -200,19 +209,37 @@ class Scraper:
 			solved_captcha = check_for_captcha_solve()
 
 			if not solved_captcha:
-				return False, False
+				return False
 
 			captcha_input.send_keys(solved_captcha)
 			captcha_submit.click()
-			return self.get_download_link(source_url, timeout)
+			return True
+		return False
 
-		metadata = self.get_results_from_search("_skQummZWZxE")[1]
-		target_url = self.wait_until_element(By.TAG_NAME, "video", timeout)
-		self.driver.execute_script(
-			"videos = document.querySelectorAll(\"video\"); for(video of videos) {video.pause()}"
-		)
-		# print(target_url.get_attribute("src"))
-		return target_url, metadata
+	def get_download_link(self, source_url, timeout=10):
+		movie = "watch-tv-show" not in source_url
+		if movie:
+			source_url = source_url.split(".html")[0] + ".html"
+			if not source_url.endswith("-online-for-free.html"):
+				source_url += "-online-for-free.html"
+			source_url_list = [source_url]
+		elif not source_url.endswith(".html") and not movie:
+			source_url_list = self.driver.find_elements(By.XPATH, "//*[@class=\"_sXFMWEIryHd \"]")
+			# print(f"DEBUG: {source_url_list}")
+			for source_url, index in enumerate(source_url_list):
+				source_url_list[index] = source_url.get_attribute("href")
+			print(f"DEBUG: {source_url_list}")
+
+		for url in source_url_list:
+			self.open_link(url)
+
+			if self.run_captcha_functions(): self.get_download_link(url, timeout)
+			metadata = self.get_results_from_search("_skQummZWZxE")[1]  # Works for movies and TV
+			target_url = self.wait_until_element(By.TAG_NAME, "video", timeout)
+			self.driver.execute_script(
+				"videos = document.querySelectorAll(\"video\"); for(video of videos) {video.pause()}"
+			)
+			return target_url, metadata
 
 	# '''Demitri's Holy Contribution'''
 	# def get_movie(self, name):
@@ -226,10 +253,15 @@ class Scraper:
 			"https://gomovies-online.cam/search/" + \
 			"-".join(search_query.split())
 		)
+		# print(metadata)
+		# print(len(search_results))
 		if search_results:
-			print(f"Finished scraping {len(metadata)} results in {round(time.time()-start_time,2)} seconds!")
+			search_time_elapsed = round(time.time()-start_time,2)
+			print(f"Finished scraping {len(search_results)} results in {search_time_elapsed} seconds!")
+			source_url = search_results[0].get_attribute("href")
+			# print(source_url)  # https://gomovies-online.cam/watch-tv-show/rick-and-morty-season-5/kT63YrkM
 			url = self.get_download_link(
-				search_results[0].get_attribute("href") + "-online-for-free.html"
+				source_url + ("-online-for-free.html" if "watch-tv-show" not in source_url else "")
 			)[0]
 			print("Link found.")
 			log(str(metadata[list(metadata)[0]]) + "--embed")
@@ -256,6 +288,16 @@ def check_for_captcha_solve(timeout=100):
 			return solved_captcha
 	log(f"Captcha was not solved withing {timeout} seconds.\nAborting download.", silent=False)
 	return False
+
+def error(e):
+	''' Code by Confused Cottonmouth - Jan 13 2021 '''
+	exc_type, exc_obj, exc_tb = sys.exc_info()
+	filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+	# Exception type:  <class 'NotImplementedError'>
+	# File name:       src.py
+	# Line number:     5
+	# Exception data:
+	return f"```javascript\nException type:  {exc_type}\nFile name:       {filename}\nLine Number:     {exc_tb.tb_lineno}\nException data:  {e}```"
 
 
 if __name__ == "__main__":

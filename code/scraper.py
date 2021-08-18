@@ -45,6 +45,27 @@ class Scraper:
 		if minimize:
 			self.driver.minimize_window()
 
+	def get_metadata_from_video(self, url):
+		description = self.driver.find_elements(By.CLASS_NAME, "_skQummZWZxE")
+		for element in description:
+			element = element.text.replace("\n","\\n")
+			print(f"DEBUG: description \"{element}\"")
+		filmname = self.driver.find_element(
+			By.XPATH, "//*[@id=\"info\"]/div[1]/div[1]/h1"
+		).text.replace(":","")
+
+		metadata = {}
+
+		metadata[filmname] = {
+			"data-filmname": filmname,
+			"data-year":     description[0].text.split("\n")[1],
+			"data-imdb":     description[1]
+		}
+		print(metadata)
+		# self.close()
+		# quit()
+		return metadata
+
 	def search(self, url, movie=True):
 		# print(url)
 		# print(movie)
@@ -67,7 +88,7 @@ class Scraper:
 		metadata = {}
 		for description in descriptions:
 			if description.get_attribute("data-filmname") != description.text: continue
-			metadata[description.text] = {
+			metadata[description.text.replace(":","")] = {
 				"data-filmname": description.get_attribute("data-filmname").replace(":",""),
 				"data-year":     description.get_attribute("data-year"),
 				"data-imdb":     description.get_attribute("data-imdb"),
@@ -217,6 +238,7 @@ class Scraper:
 		return False
 
 	def get_download_link(self, source_url, timeout=10):
+		# print(source_url)  # https://gomovies-online.cam/watch-tv-show/rick-and-morty-season-5/kT63YrkM
 		movie = "watch-tv-show" not in source_url
 		if movie:
 			source_url = source_url.split(".html")[0] + ".html"
@@ -224,21 +246,25 @@ class Scraper:
 				source_url += "-online-for-free.html"
 			source_url_list = [source_url]
 		elif not source_url.endswith(".html") and not movie:
+			self.open_link(source_url)
 			source_url_list = self.driver.find_elements(By.XPATH, "//*[@class=\"_sXFMWEIryHd \"]")
 			# print(f"DEBUG: {source_url_list}")
-			for source_url, index in enumerate(source_url_list):
+			for index, source_url in enumerate(source_url_list):
 				source_url_list[index] = source_url.get_attribute("href")
-			print(f"DEBUG: {source_url_list}")
+			# print(f"DEBUG: source_url_list for not movie {source_url_list}")
 
+		# print(source_url_list)  # []
 		for url in source_url_list:
 			self.open_link(url)
 
 			if self.run_captcha_functions(): self.get_download_link(url, timeout)
-			metadata = self.get_results_from_search("_skQummZWZxE")[1]  # Works for movies and TV
+			metadata = self.get_metadata_from_video(url)  # Works for movies and TV
 			target_url = self.wait_until_element(By.TAG_NAME, "video", timeout)
 			self.driver.execute_script(
 				"videos = document.querySelectorAll(\"video\"); for(video of videos) {video.pause()}"
 			)
+			# print(target_url)
+			print(metadata)
 			return target_url, metadata
 
 	# '''Demitri's Holy Contribution'''
@@ -303,7 +329,8 @@ def error(e):
 if __name__ == "__main__":
 	scraper = Scraper(minimize=False)
 	while True:
-		query = input("Enter a Title to search for:\n> ")
+		# query = input("Enter a Title to search for:\n> ")
+		query = "black widow"
 		if query:
 			scraper.run(query)
 		else:

@@ -45,27 +45,6 @@ class Scraper:
 		if minimize:
 			self.driver.minimize_window()
 
-	def get_metadata_from_video(self, url):
-		description = self.driver.find_elements(By.CLASS_NAME, "_skQummZWZxE")
-		for element in description:
-			element = element.text.replace("\n","\\n")
-			print(f"DEBUG: description \"{element}\"")
-		filmname = self.driver.find_element(
-			By.XPATH, "//*[@id=\"info\"]/div[1]/div[1]/h1"
-		).text.replace(":","")
-
-		metadata = {}
-
-		metadata[filmname] = {
-			"data-filmname": filmname,
-			"data-year":     description[0].text.split("\n")[1],
-			"data-imdb":     description[1]
-		}
-		print(metadata)
-		# self.close()
-		# quit()
-		return metadata
-
 	def search(self, url, movie=True):
 		# print(url)
 		# print(movie)
@@ -91,7 +70,7 @@ class Scraper:
 			metadata[description.text.replace(":","")] = {
 				"data-filmname": description.get_attribute("data-filmname").replace(":",""),
 				"data-year":     description.get_attribute("data-year"),
-				"data-imdb":     description.get_attribute("data-imdb"),
+				"data-imdb":     description.get_attribute("data-imdb").split("\n")[1],
 				"data-duration": description.get_attribute("data-duration"),
 				"data-country":  description.get_attribute("data-country"),
 				"data-genre":    description.get_attribute("data-genre"),
@@ -100,6 +79,43 @@ class Scraper:
 			}
 		# print(metadata)
 		return results, metadata
+
+	def get_metadata_from_video(self, url):
+		#################
+		# TESTING START #
+		#################
+		description = self.driver.find_elements(By.CLASS_NAME, "_skQummZWZxE")
+		for element in description:
+			element = element.text.replace("\n","\\n")
+			print(f"DEBUG: description \"{element}\"")
+		#################
+		#  TESTING END  #
+		#################
+		filmname = self.driver.find_element(
+			By.XPATH, "//*[@id=\"info\"]/div[1]/div[1]/h1"
+		).text.replace(":","")
+
+		metadata = {}
+
+		description = self.driver.find_elements(By.CLASS_NAME, "_skQummZWZxE")
+		metadata[filmname] = {
+			"data-filmname": filmname,
+			"data-year":     description[0].text.split("\n")[1],
+			"data-imdb":     description[1].text.split("\n")[1],
+			"data-duration": description[3].text.split("\n")[1],
+		}
+
+		description = self.driver.find_elements(By.CLASS_NAME, "_snsNGwwUUBn")
+		metadata[filmname] = {
+			"data-country":  description[4].text,#.split("\n")[1],
+			"data-genre":    description[2].text.split(": ")[1],#.split("\n")[1],
+			"data-descript":  self.driver.find_element(By.CLASS_NAME, "_snmrSkaJSTK").text.split("\n")[1],
+		}
+
+		# print(metadata)
+		# self.close()
+		# quit()
+		return metadata
 
 	def wait_until_element(self, stratagy, locator, timeout=10):
 		wait = WebDriverWait(self.driver, timeout)

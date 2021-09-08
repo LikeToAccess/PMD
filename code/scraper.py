@@ -93,7 +93,7 @@ class Scraper:
 		#################
 		filmname = self.driver.find_element(
 			By.XPATH, "//*[@id=\"info\"]/div[1]/div[1]/h1"
-		).text.replace(":","")
+		)#.text.replace(":","")
 
 		metadata = {}
 

@@ -131,7 +131,7 @@ class Download:
 
 
 if __name__ == "__main__":
-	scraper = Scraper(minimize=True)
+	scraper = Scraper(minimize=False)
 	data = scraper.download_first_from_search(input("Enter a Title to search for:\n> "))
 	if None in data:
 		print("No results!")

@@ -31,11 +31,6 @@ channel_id = {
 }
 bot = commands.Bot(command_prefix=
 	[
-		"!",
-		"`",
-		"~",
-		"-",
-		"please ",
 		"beta "
 	],
 	help_command=None, case_insensitive=True)
@@ -72,36 +67,26 @@ async def on_message(message):
 async def check_logs(filename="log.txt"):
 	log_data = media.read_file(filename, filter=True)
 	if log_data:
+		# print(log_data)
 		media.write_file(filename, "### Beginning of message buffer from server ###\n")
-		# message = "\n".join(log_data)
-		# # print(message)
-		# if "--channel=" in message:
-		# 	message = message.split("--channel=")
-		# 	await send(message[0], channel=message[1])
-		# if "--embed" in message:
-		# 	metadata = eval(message.replace("--embed",""))
-		# 	await create_embed(metadata)
-		# else:
-		# 	await send(message)
-		# # for message in log_data:
-		# # 	if "--channel=" in message:
-		# # 		message = message.split(" --channel=")
-		# # 		await send(message[0], channel=message[1])
-		# # 	else:
-		# # 		await send(message)
 
 		bulk_message = []
 		for message in log_data:
+			# if "--download" in message:
+			# 	url, metadata, author = message.replace("--download","").split("|")
+			# 	run_download(url, metadata, author)
 			if "--embed" in message:
 				metadata = eval(message.replace("--embed",""))
 				await create_embed(metadata)
 			elif "--channel=" in message:
-					message = message.split("--channel=")
-					await send(message[0], channel=message[1])
+				message = message.split("--channel=")
+				await send(message[0], channel=message[1])
 			else:
 				bulk_message.append(message)
 
 		if bulk_message: await send("\n".join(bulk_message))
+
+
 
 
 
@@ -139,6 +124,7 @@ async def downloads(ctx, user: discord.User, *flags):
 async def download_first_result(ctx, *movie_name):
 	movie_name = " ".join(movie_name)
 	author = ctx.author.id
+	scraper.author = author
 	if "https://gomovies-online." in movie_name:
 		await send("Downloading via direct link...")
 		url, metadata = scraper.get_download_link(movie_name)  # This would be a link not a query
@@ -157,7 +143,8 @@ async def download_first_result(ctx, *movie_name):
 @bot.command()
 async def search(ctx, *search_query):
 	search_query = " ".join(search_query)
-	# author = ctx.author.id
+	author = ctx.author.id
+	scraper.author = author
 	await send("Searching for matches...")
 	start_time = time.time()
 	# url, metadata = scraper.download_first_from_search(movie_name)  # Searches using a movie title

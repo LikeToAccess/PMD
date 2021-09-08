@@ -15,6 +15,7 @@ import os
 import sys
 import crop
 import media
+import errors
 from media import log
 from selenium import webdriver
 from selenium.common.exceptions import *
@@ -39,6 +40,7 @@ class Scraper:
 		self.executable = "chromedriver.exe" if os.name == "nt" else "chromedriver"
 		self.driver = webdriver.Chrome(executable_path=os.path.abspath(self.executable), options=options)
 		self.first_launch = True
+		self.author = "0"
 		self.headers = {
 			"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
 		}
@@ -59,18 +61,29 @@ class Scraper:
 			element_class=element_class,
 			decription_class=description_class
 		)
+
 		if not results:
 			if not movie:
 				# print("Movie is False and no results were found")
-				return None, None
+				raise Exception
 			return self.search(url, movie=False)
+
+		if not descriptions:  # this is the same as "if results and not descriptions:"
+			description_class = "_smQamBQsETb"
+			results, descriptions = self.get_results_from_search(
+				element_class=element_class,
+				decription_class=description_class
+			)
+		# time.sleep(10)
+
 		metadata = {}
 		for description in descriptions:
+			# print(description.get_attribute("data-imdb"))
 			if description.get_attribute("data-filmname") != description.text: continue
 			metadata[description.text.replace(":","")] = {
 				"data-filmname": description.get_attribute("data-filmname").replace(":",""),
 				"data-year":     description.get_attribute("data-year"),
-				"data-imdb":     description.get_attribute("data-imdb").split("\n")[1],
+				"data-imdb":     description.get_attribute("data-imdb").split(": ")[1],
 				"data-duration": description.get_attribute("data-duration"),
 				"data-country":  description.get_attribute("data-country"),
 				"data-genre":    description.get_attribute("data-genre"),
@@ -84,10 +97,13 @@ class Scraper:
 		#################
 		# TESTING START #
 		#################
-		description = self.driver.find_elements(By.CLASS_NAME, "_skQummZWZxE")
-		for element in description:
-			element = element.text.replace("\n","\\n")
-			print(f"DEBUG: description \"{element}\"")
+		# description = (
+		# 	self.driver.find_elements(By.CLASS_NAME, "_skQummZWZxE") + \
+		# 	self.driver.find_elements(By.CLASS_NAME, "_snsNGwwUUBn")
+		# )
+		# for element in description:
+		# 	element = element.text.replace("\n","\\n")
+		# 	print(f"DEBUG: description \"{element}\"")
 		#################
 		#  TESTING END  #
 		#################
@@ -97,19 +113,19 @@ class Scraper:
 
 		metadata = {}
 
-		description = self.driver.find_elements(By.CLASS_NAME, "_skQummZWZxE")
+		description = (
+			self.driver.find_elements(By.CLASS_NAME, "_skQummZWZxE") + \
+			self.driver.find_elements(By.CLASS_NAME, "_snsNGwwUUBn")
+		)
+
 		metadata[filmname] = {
 			"data-filmname": filmname,
 			"data-year":     description[0].text.split("\n")[1],
 			"data-imdb":     description[1].text.split("\n")[1],
 			"data-duration": description[3].text.split("\n")[1],
-		}
-
-		description = self.driver.find_elements(By.CLASS_NAME, "_snsNGwwUUBn")
-		metadata[filmname] = {
-			"data-country":  description[4].text,#.split("\n")[1],
-			"data-genre":    description[2].text.split(": ")[1],#.split("\n")[1],
-			"data-descript":  self.driver.find_element(By.CLASS_NAME, "_snmrSkaJSTK").text.split("\n")[1],
+			"data-country":  description[8].text.split(": ")[1],
+			"data-genre":    description[6].text.split(": ")[1],
+			"data-descript": self.driver.find_element(By.CLASS_NAME, "_snmrSkaJSTK").text.split("\n")[1],
 		}
 
 		# print(metadata)
@@ -240,7 +256,7 @@ class Scraper:
 			time.sleep(0.25)
 			self.screenshot_captcha(captcha_image)
 			log(
-				"Captcha! Solve using the command:\n```!solve <captcha_solution>```--file=captcha.png",
+				"Captcha! Solve using the command:\n```beta solve <captcha_solution>```--file=captcha.png",
 				silent=False
 			)
 			solved_captcha = check_for_captcha_solve()
@@ -267,9 +283,13 @@ class Scraper:
 			# print(f"DEBUG: {source_url_list}")
 			for index, source_url in enumerate(source_url_list):
 				source_url_list[index] = source_url.get_attribute("href")
-			# print(f"DEBUG: source_url_list for not movie {source_url_list}")
+				if not isinstance(source_url_list[index], str):
+					source_url_list.pop(index)
+				elif not source_url_list[index].endswith(".html"):
+					source_url_list.pop(index)
+			print(f"DEBUG: source_url_list for not movie {source_url_list}")
 
-		# print(source_url_list)  # []
+		# print(source_url_list)
 		for url in source_url_list:
 			self.open_link(url)
 
@@ -280,8 +300,14 @@ class Scraper:
 				"videos = document.querySelectorAll(\"video\"); for(video of videos) {video.pause()}"
 			)
 			# print(target_url)
-			print(metadata)
-			return target_url, metadata
+			# print(metadata)
+			# TODO: Log metatada here
+			# log(metadata)
+			# download.run_download(target_url.get_attribute("src"), metadata[list(metadata)[0]], author)
+			log(str(metadata[list(metadata)[0]]) + "--embed")
+			log(f"{target_url}|{metadata}|{self.author}--download")
+			if url == source_url_list[-1]:
+				return target_url, metadata
 
 	# '''Demitri's Holy Contribution'''
 	# def get_movie(self, name):
@@ -295,6 +321,11 @@ class Scraper:
 			"https://gomovies-online.cam/search/" + \
 			"-".join(search_query.split())
 		)
+		# except errors.TV_Show_Error:
+		# 	self.open_link("https://gomovies-online.cam/search/" + "-".join(search_query.split()))
+		# 	self.driver.find_elements_by_class_name("item_series")[0].click()
+		# 	source_url = self.driver.current_url
+		# 	metadata = self.get_metadata_from_video(source_url)
 		# print(metadata)
 		# print(len(search_results))
 		if search_results:
@@ -306,6 +337,7 @@ class Scraper:
 				source_url + ("-online-for-free.html" if "watch-tv-show" not in source_url else "")
 			)[0]
 			print("Link found.")
+			# print(metadata)
 			log(str(metadata[list(metadata)[0]]) + "--embed")
 		else:
 			print("Error: No search results found!")

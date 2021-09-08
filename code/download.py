@@ -94,7 +94,7 @@ class Download:
 
 		# print(f"DEBUG: {self.url}")
 		# print(request.status_code)
-		# print(self.metadata)
+		print(f"DEBUG: {self.metadata}")
 		filmname = self.metadata["data-filmname"]
 		year = self.metadata["data-year"]
 		# print(f"DEBUG: {filmname}")

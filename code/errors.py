@@ -14,3 +14,6 @@
 
 class TV_Show_Error(Exception):
 	pass
+
+class NoResults(Exception):
+	pass

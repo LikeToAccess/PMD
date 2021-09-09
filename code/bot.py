@@ -15,6 +15,7 @@ from threading import Thread
 import discord
 from discord.ext import commands, tasks
 from scraper import Scraper
+from errors import NoResults
 import config as cfg
 import media
 import download
@@ -59,7 +60,7 @@ async def on_message(message):
 	author = message.author
 	source_url = message.content
 	target_url, metadata = scraper.get_download_link(source_url)
-	run_download(target_url.get_attribute("src"), metadata, author.id)
+	run_download(target_url, metadata, author.id)
 	# threaded_download = Thread(target=download.download, args=(link,author))
 	# threaded_download.start()
 
@@ -78,6 +79,9 @@ async def check_logs(filename="log.txt"):
 			if "--embed" in message:
 				metadata = eval(message.replace("--embed",""))
 				await create_embed(metadata)
+			elif "--download" in message:
+				# media.credit(self.author, filename=filename, resolution=resolution, file_size=file_size)
+				pass  # TODO: I can't remember why I needed to pass through the metadata and author info
 			elif "--channel=" in message:
 				message = message.split("--channel=")
 				await send(message[0], channel=message[1])
@@ -130,13 +134,17 @@ async def download_first_result(ctx, *movie_name):
 		url, metadata = scraper.get_download_link(movie_name)  # This would be a link not a query
 	else:
 		await send("Searching for matches...")
-		url, metadata = scraper.download_first_from_search(movie_name)  # Searches using a movie title
+		try:
+			url, metadata = scraper.download_first_from_search(movie_name)  # Searches using a movie title
+		except NoResults:
+			url = None
 
 	if url:
 		# If there were any results found, then download
 		await send("Link found, downloading starting...")
-		# print(metadata)
-		run_download(url.get_attribute("src"), metadata[list(metadata)[0]], author)
+		print(f"DEBUG: {metadata}")
+		await create_embed(metadata[list(metadata)[0]])
+		run_download(url, metadata[list(metadata)[0]], author)
 	else:
 		await send("**ERROR**: No search results found!")
 

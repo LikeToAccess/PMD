@@ -94,7 +94,7 @@ class Download:
 
 		# print(f"DEBUG: {self.url}")
 		# print(request.status_code)
-		print(f"DEBUG: {self.metadata}")
+		# print(f"DEBUG: {self.metadata}")
 		filmname = self.metadata["data-filmname"]
 		year = self.metadata["data-year"]
 		# print(f"DEBUG: {filmname}")
@@ -125,7 +125,7 @@ class Download:
 		filename = filename.replace(".crdownload", ".mp4")
 		file_size = round(int(request.headers.get("content-length", 0))/1024/1024,2)
 		media.credit(self.author, filename=filename, resolution=resolution, file_size=file_size)
-		log(f"Finished download of {filename} in {resolution}p ({file_size} MB).")
+		log(f"Finished download of {filename} in {resolution}p ({file_size} MB).", silent=False)
 
 		return True
 

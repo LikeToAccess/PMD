@@ -30,7 +30,7 @@ def credit(author, filename, resolution, file_size):
 
 def format_title(filename):
 	if "/" in filename: filename = filename.split("/")[::-1][0]
-	filename = " ".join([word.capitalize() for word in filename.split(".")[0].split()])
+	filename = filename.split(".")[0]
 	return filename
 
 def remove_file(filename):

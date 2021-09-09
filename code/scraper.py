@@ -15,7 +15,7 @@ import os
 import sys
 import crop
 import media
-import errors
+from errors import NoResults
 from media import log
 from selenium import webdriver
 from selenium.common.exceptions import *
@@ -47,13 +47,16 @@ class Scraper:
 		if minimize:
 			self.driver.minimize_window()
 
-	def search(self, url, movie=True):
+	def search(self, url, media_type=0):
 		# print(url)
 		# print(movie)
-		if movie:
+		if media_type == 0:  # Movie (HD)
 			element_class = "item_hd"
 			description_class = "_smQamBQsETb"
-		else:
+		elif media_type == 1:  # Movie (CAM)
+			element_class = "item_cam"
+			description_class = "_smQamBQsETb"
+		elif media_type >= 2:  # TV Show
 			element_class = "item_series"
 			description_class = "_skQummZWZxE"
 		self.open_link(url)
@@ -63,10 +66,11 @@ class Scraper:
 		)
 
 		if not results:
-			if not movie:
+			if media_type >= 2:  # TV Show
 				# print("Movie is False and no results were found")
-				raise Exception
-			return self.search(url, movie=False)
+				raise NoResults
+			media_type += 1
+			return self.search(url, media_type=media_type)
 
 		if not descriptions:  # this is the same as "if results and not descriptions:"
 			description_class = "_smQamBQsETb"
@@ -109,7 +113,7 @@ class Scraper:
 		#################
 		filmname = self.driver.find_element(
 			By.XPATH, "//*[@id=\"info\"]/div[1]/div[1]/h1"
-		)#.text.replace(":","")
+		).text#.replace(":","")
 
 		metadata = {}
 
@@ -125,7 +129,13 @@ class Scraper:
 			"data-duration": description[3].text.split("\n")[1],
 			"data-country":  description[8].text.split(": ")[1],
 			"data-genre":    description[6].text.split(": ")[1],
-			"data-descript": self.driver.find_element(By.CLASS_NAME, "_snmrSkaJSTK").text.split("\n")[1],
+			"data-descript": self.driver.find_element(
+							 	 By.CLASS_NAME, "_snmrSkaJSTK").text.split("\n")[1],
+			"img":           self.driver.find_element(
+								 By.XPATH,
+								 "html/body/main/div/div/section/div[5]/div/box/div/div/div/div[3]/div[3]/div[1]/div[1]/img"
+							 ).get_attribute("data-src"),
+			# "img":           self.driver.find_element_by_tag_name("img").get_attribute("src")
 		}
 
 		# print(metadata)
@@ -273,7 +283,7 @@ class Scraper:
 		# print(source_url)  # https://gomovies-online.cam/watch-tv-show/rick-and-morty-season-5/kT63YrkM
 		movie = "watch-tv-show" not in source_url
 		if movie:
-			source_url = source_url.split(".html")[0] + ".html"
+			source_url = (source_url.split(".html")[0] + ".html") if ".html" in source_url else source_url
 			if not source_url.endswith("-online-for-free.html"):
 				source_url += "-online-for-free.html"
 			source_url_list = [source_url]
@@ -294,18 +304,31 @@ class Scraper:
 			self.open_link(url)
 
 			if self.run_captcha_functions(): self.get_download_link(url, timeout)
+
+			# TODO: This is returning selenium elements instead of strings when downloading movies (FIXME)
 			metadata = self.get_metadata_from_video(url)  # Works for movies and TV
-			target_url = self.wait_until_element(By.TAG_NAME, "video", timeout)
+
+			target_url = self.wait_until_element(
+				By.TAG_NAME, "video", timeout
+			).get_attribute("src")
+
 			self.driver.execute_script(
 				"videos = document.querySelectorAll(\"video\"); for(video of videos) {video.pause()}"
 			)
+
 			# print(target_url)
 			# print(metadata)
 			# TODO: Log metatada here
 			# log(metadata)
 			# download.run_download(target_url.get_attribute("src"), metadata[list(metadata)[0]], author)
-			log(str(metadata[list(metadata)[0]]) + "--embed")
+			# log(str(metadata[list(metadata)[0]]) + "--embed", silent=False)
+
+
+
+			# target_url is returning a selenium element
 			log(f"{target_url}|{metadata}|{self.author}--download")
+
+			# log(f"{filename}|{resolution}|{filesize}|{self.author}--credit")  # TODO: Just return the filename, resolution, and filesize
 			if url == source_url_list[-1]:
 				return target_url, metadata
 
@@ -346,7 +369,7 @@ class Scraper:
 
 	def run(self, search_query):
 		url = self.download_first_from_search(search_query)[0]
-		return url.get_attribute("src") if url else url
+		return url
 
 
 def check_for_captcha_solve(timeout=100):

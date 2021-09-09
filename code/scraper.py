@@ -72,6 +72,7 @@ class Scraper:
 			media_type += 1
 			return self.search(url, media_type=media_type)
 
+		log("**INFO:** Film is in CAM quality.", silent=False)
 		if not descriptions:  # this is the same as "if results and not descriptions:"
 			description_class = "_smQamBQsETb"
 			results, descriptions = self.get_results_from_search(
@@ -278,7 +279,7 @@ class Scraper:
 				"Captcha! Solve using the command:\n```beta solve <captcha_solution>```--file=captcha.png",
 				silent=False
 			)
-			solved_captcha = check_for_captcha_solve()
+			solved_captcha = check_for_captcha_solve(timeout=1)
 
 			if not solved_captcha:
 				return False

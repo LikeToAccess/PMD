@@ -72,7 +72,7 @@ class Scraper:
 			media_type += 1
 			return self.search(url, media_type=media_type)
 
-		log("**INFO:** Film is in CAM quality.", silent=False)
+		if media_type == 1: log("**INFO:** Film is in CAM quality.", silent=False)
 		if not descriptions:  # this is the same as "if results and not descriptions:"
 			description_class = "_smQamBQsETb"
 			results, descriptions = self.get_results_from_search(

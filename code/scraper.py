@@ -119,7 +119,10 @@ class Scraper:
 
 		description = (
 			self.driver.find_elements(By.CLASS_NAME, "_skQummZWZxE") + \
-			self.driver.find_elements(By.CLASS_NAME, "_snsNGwwUUBn")
+			self.driver.find_elements(By.CLASS_NAME, "_snsNGwwUUBn") + \
+			self.driver.find_elements(
+				By.XPATH, "/html/body/main/div/div/section/div[5]/div/box/div/div/div/div[3]"
+			)
 		)
 
 		metadata[filmname] = {
@@ -131,12 +134,18 @@ class Scraper:
 			"data-genre":    description[6].text.split(": ")[1],
 			"data-descript": self.driver.find_element(
 							 	 By.CLASS_NAME, "_snmrSkaJSTK").text.split("\n")[1],
-			"img":           self.driver.find_element(
-								 By.XPATH,
-								 "html/body/main/div/div/section/div[5]/div/box/div/div/div/div[3]/div[3]/div[1]/div[1]/img"
-							 ).get_attribute("data-src"),
-			# "img":           self.driver.find_element_by_tag_name("img").get_attribute("src")
+			"img":           description[-1].get_attribute("src")
+			# "img":           self.driver.find_element(
+			# 					 By.CLASS_NAME, "_srtJammHptu").get_attribute("data-src"),
+			# "img":           self.driver.find_element(
+			# 					 By.XPATH,
+			# 					 "/html/body/main/div/div/section/div[5]/div/box/div/div/div/div[3]/div[4]/div[1]/div[1]"
+			# 				 ).get_attribute("data-src"),
 		}
+
+		if not metadata[filmname]["img"]:
+			metadata[filmname]["img"] = \
+				"https://upload.wikimedia.org/wikipedia/commons/a/af/Question_mark.png"
 
 		# print(metadata)
 		# self.close()
@@ -282,22 +291,44 @@ class Scraper:
 	def get_download_link(self, source_url, timeout=10):
 		# print(source_url)  # https://gomovies-online.cam/watch-tv-show/rick-and-morty-season-5/kT63YrkM
 		movie = "watch-tv-show" not in source_url
+
+		# if movie:
+		# 	source_url = (source_url.split(".html")[0] + ".html") if ".html" in source_url else source_url
+		# 	if not source_url.endswith("-online-for-free.html"):
+		# 		source_url += "-online-for-free.html"
+		# 	source_url_list = [source_url]
+		# elif not source_url.endswith(".html") and not movie:
+		# 	self.open_link(source_url)
+		# 	source_url_list = self.driver.find_elements(By.XPATH, "//*[@class=\"_sXFMWEIryHd \"]")
+		# 	# print(f"DEBUG: {source_url_list}")
+		# 	for index, source_url in enumerate(source_url_list):
+		# 		source_url_list[index] = source_url.get_attribute("href")
+		# 		if not isinstance(source_url_list[index], str):
+		# 			source_url_list.pop(index)
+		# 		elif not source_url_list[index].endswith(".html"):
+		# 			source_url_list.pop(index)
+		# 	print(f"DEBUG: source_url_list for not movie {source_url_list}")
+
+		# Link is a movie
 		if movie:
-			source_url = (source_url.split(".html")[0] + ".html") if ".html" in source_url else source_url
+			source_url = source_url.split(".html")[0] + ".html"
 			if not source_url.endswith("-online-for-free.html"):
 				source_url += "-online-for-free.html"
 			source_url_list = [source_url]
-		elif not source_url.endswith(".html") and not movie:
+		# Link is a TV show season
+		elif not source_url.endswith(".html"):
 			self.open_link(source_url)
 			source_url_list = self.driver.find_elements(By.XPATH, "//*[@class=\"_sXFMWEIryHd \"]")
 			# print(f"DEBUG: {source_url_list}")
 			for index, source_url in enumerate(source_url_list):
 				source_url_list[index] = source_url.get_attribute("href")
-				if not isinstance(source_url_list[index], str):
-					source_url_list.pop(index)
-				elif not source_url_list[index].endswith(".html"):
-					source_url_list.pop(index)
-			print(f"DEBUG: source_url_list for not movie {source_url_list}")
+			# print(f"DEBUG: source_url_list for not movie {source_url_list}")
+		# Link is a TV show episode
+		else:
+			source_url = source_url.split(".html")[0] + ".html"
+			if not source_url.endswith("-online-for-free.html"):
+				source_url += "-online-for-free.html"
+			source_url_list = [source_url]
 
 		# print(source_url_list)
 		for url in source_url_list:

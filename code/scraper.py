@@ -393,7 +393,7 @@ class Scraper:
 			)[0]
 			print("Link found.")
 			# print(metadata)
-			log(str(metadata[list(metadata)[0]]) + "--embed")
+			# log(str(metadata[list(metadata)[0]]) + "--embed")  # This is done bot side.
 		else:
 			print("Error: No search results found!")
 		print(f"Finished all scraping in {round(time.time()-start_time,2)} seconds!")

@@ -32,9 +32,11 @@ channel_id = {
 }
 bot = commands.Bot(command_prefix=
 	[
-		"beta "
+		"beta ",
+		"Beta ",
+		"BETA ",
 	],
-	help_command=None, case_insensitive=True)
+	help_command=None)  #, case_insensitive=True)
 
 
 #                    |

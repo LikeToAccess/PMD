@@ -27,12 +27,13 @@ from selenium.webdriver.support import expected_conditions as EC
 
 class Scraper:
 	def __init__(self, minimize=True):
+		# log("hello testing--file=captcha.png")
 		options = Options()
 		files = os.listdir()
 		for file in files:
 			if file.endswith("crx"):
 				options.add_extension(file)
-		# options.add_argument("--headless")
+		# options.add_argument("headless")
 		user_data_dir = os.path.abspath("selenium")
 		options.add_argument(f"user-data-dir={user_data_dir}")
 		options.add_argument("--disable-gpu")
@@ -267,6 +268,7 @@ class Scraper:
 			return None, None, None
 		if captcha_image:
 			print("DEBUG: Captcha!")
+			log("Captcha! Solve using the command:\n```beta solve <captcha_solution>```")
 
 		return captcha_image, captcha_input, captcha_submit
 
@@ -275,19 +277,14 @@ class Scraper:
 		if captcha_image:
 			time.sleep(0.25)
 			self.screenshot_captcha(captcha_image)
-			log(
-				"Captcha! Solve using the command:\n```beta solve <captcha_solution>```--file=captcha.png",
-				silent=False
-			)
-			solved_captcha = check_for_captcha_solve(timeout=1)
 
-			if not solved_captcha:
-				return False
+			# log("DEBUG--file=captcha.png")
+			# solved_captcha = check_for_captcha_solve(timeout=1)
+			solved_captcha = False
 
-			captcha_input.send_keys(solved_captcha)
-			captcha_submit.click()
-			return True
-		return False
+			if solved_captcha:
+				captcha_input.send_keys(solved_captcha)
+				captcha_submit.click()
 
 	def get_download_link(self, source_url, timeout=10):
 		# print(source_url)  # https://gomovies-online.cam/watch-tv-show/rick-and-morty-season-5/kT63YrkM

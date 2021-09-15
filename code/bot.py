@@ -87,6 +87,8 @@ async def check_logs(filename="log.txt"):
 			elif "--channel=" in message:
 				message = message.split("--channel=")
 				await send(message[0], channel=message[1])
+			elif "--file" in message:
+				await send(message)
 			else:
 				bulk_message.append(message)
 
@@ -230,12 +232,14 @@ async def create_embed(metadata, color=0xcbaf2f, channel="commands"):
 
 async def send(msg, channel="commands", silent=True):
 	channel = bot.get_channel(channel_id[channel])
-	image = False
-	if "--file=" in msg: msg = msg.split("--file=")
-	if not image: await channel.send(msg)
-	else:
-		await channel.send(file=discord.File(msg[1]))
+	if "--file" in msg:
+		msg = msg.split("--file=")
+		print(f"DEBUG: msg contains \"--file\" and the filename is \"{msg[1]}\"")
 		await channel.send(msg[0].strip())
+		await channel.send(file=discord.File(msg[1]))
+	else:
+		await channel.send(msg)
+
 	if not silent: print(msg)
 
 async def set_status(activity, status=discord.Status.online):

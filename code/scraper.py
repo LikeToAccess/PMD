@@ -27,7 +27,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 class Scraper:
 	def __init__(self, minimize=True):
-		# log("hello testing--file=captcha.png")
+		log("hello testing--file=captcha.png")
 		options = Options()
 		files = os.listdir()
 		for file in files:

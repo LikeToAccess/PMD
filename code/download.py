@@ -23,6 +23,7 @@ from media import log
 
 
 headers = {"user-agent": cfg.user_agent}
+proxies = {"https": "http://40.91.94.165:3128"}
 quality = cfg.video_quality
 media_files = media.Media("MOVIES")
 home = os.getcwd()
@@ -41,7 +42,7 @@ def validate_url(url, target_res):
 	# print(f"METADATA: {len(metadata)}")
 	# print(f"AUTHOR:   {author}")
 	# print(url == str(url))
-	request = requests.get(url, headers=headers, stream=True, timeout=(30,60))
+	request = requests.get(url, headers=headers, proxies=proxies, stream=True, timeout=(30,60))
 	status_code = request.status_code
 	print(f"STATUS for {target_res}p: {status_code}")
 	if status_code == 200:

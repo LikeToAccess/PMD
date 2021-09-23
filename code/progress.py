@@ -19,6 +19,7 @@ from media import log
 def file_size(filename, count, start_time=None, target_size=None):
 	size = media.size(filename)
 	size_MB = round(size/1024/1024, 2)
+	print("DEBUG: Trying to send file update!")
 	# print(f"DEBUG: tg_s:{target_size}, s:{size}, r_s:{rounded_size}")
 	if ((count+1) % 25 == 0 or count == 3) and start_time and target_size:
 		filename = media.format_title(filename)

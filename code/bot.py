@@ -157,7 +157,7 @@ async def search(ctx, *search_query):
 	search_query = " ".join(search_query)
 	author = ctx.author.id
 	scraper.author = author
-	await send("Searching for matches...")
+	# await send("Searching for matches...")
 	start_time = time.time()
 	# url, metadata = scraper.download_first_from_search(movie_name)  # Searches using a movie title
 	if search_query:

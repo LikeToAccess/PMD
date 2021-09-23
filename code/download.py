@@ -23,7 +23,10 @@ from media import log
 
 
 headers = {"user-agent": cfg.user_agent}
-proxies = {"https": "http://40.91.94.165:3128"}
+proxies = {
+	"http":  "socks5://192.168.50.99:28284",
+	"https": "socks5://192.168.50.99:28284"
+}
 quality = cfg.video_quality
 media_files = media.Media("MOVIES")
 home = os.getcwd()

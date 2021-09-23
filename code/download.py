@@ -45,8 +45,13 @@ def validate_url(url, target_res):
 	# print(f"METADATA: {len(metadata)}")
 	# print(f"AUTHOR:   {author}")
 	# print(url == str(url))
-	request = requests.get(url, headers=headers, proxies=proxies, stream=True, timeout=(30,60))
-	status_code = request.status_code
+	try:
+		# log(url)
+		request = requests.get(url, headers=headers, proxies=proxies, stream=True, timeout=(30,60))
+		status_code = request.status_code
+	except ConnectionError:
+		status_code = "403 (check the port on the proxy?)"
+		request = None
 	print(f"STATUS for {target_res}p: {status_code}")
 	if status_code == 200:
 		return True, request

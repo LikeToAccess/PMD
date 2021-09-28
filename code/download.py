@@ -124,7 +124,7 @@ class Download:
 			absolute_path = f"TV SHOWS/{show_title}/Season {season}/{filename}.crdownload"
 		else:
 			print("Media is detected as Movie/Film.")
-			filename = f"{filmname} ({year})"
+			filename = (f"{filmname} ({year})" if filmname[-1] != ")" else filmname)
 			absolute_path = f"MOVIES/{filename}/{filename}.crdownload"
 		# print(absolute_path)
 		# target_size = request.headers.get("content-length", 0)
@@ -147,11 +147,16 @@ class Download:
 
 if __name__ == "__main__":
 	scraper = Scraper(minimize=False)
-	data = scraper.download_first_from_search(input("Enter a Title to search for:\n> "))
-	if None in data:
-		print("No results!")
-		scraper.close()
-		quit()
-	# metadata[list(metadata)[0]]
-	download = Download(data[0], data[1][list(data[1])[0]], "0")
-	download.run()
+	search = input("Enter a Title to search for:\n> ")
+
+	while search:
+		data = scraper.download_first_from_search(search)
+		if None in data:
+			print("No results!")
+			scraper.close()
+			quit()
+
+		download = Download(data[0], data[1][list(data[1])[0]], "0")
+		download.run()
+
+		search = input("Enter a Title to search for:\n> ")

@@ -429,8 +429,8 @@ def error(e):
 if __name__ == "__main__":
 	scraper = Scraper(minimize=False)
 	while True:
-		# query = input("Enter a Title to search for:\n> ")
-		query = "black widow"
+		query = input("Enter a Title to search for:\n> ")
+		# query = "black widow"
 		if query:
 			scraper.run(query)
 		else:

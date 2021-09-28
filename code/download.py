@@ -47,7 +47,13 @@ def validate_url(url, target_res):
 	# print(url == str(url))
 	try:
 		# log(url)
-		request = requests.get(url, headers=headers, proxies=proxies, stream=True, timeout=(30,60))
+		request = requests.get(
+			url,
+			headers=headers,
+			proxies=(proxies if cfg.proxy else None),
+			stream=True,
+			timeout=(30,60)
+		)
 		status_code = request.status_code
 	except ConnectionError:
 		status_code = "403 (check the port on the proxy?)"

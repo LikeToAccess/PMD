@@ -13,6 +13,7 @@ remote_server_address = "127.0.0.1"
 server_port = 26490
 network_buffer = 1024
 max_connections = 5
+proxy = False
 
 
 #

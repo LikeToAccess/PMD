@@ -256,6 +256,9 @@ class Scraper:
 		return crop.crop(filename, location, self.executable)
 
 	def check_captcha(self):
+		# Myles
+		# Liam
+		#
 		try:
 			captcha_image = self.wait_until_element(
 				By.XPATH,

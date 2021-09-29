@@ -34,7 +34,7 @@ class Scraper:
 			if file.endswith("crx"):
 				options.add_extension(file)
 		# options.add_argument("headless")
-		user_data_dir = os.path.abspath("selenium")
+		user_data_dir = os.path.abspath("selenium_data")
 		options.add_argument(f"user-data-dir={user_data_dir}")
 		options.add_argument("--disable-gpu")
 		options.add_argument("log-level=3")

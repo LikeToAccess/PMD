@@ -41,14 +41,18 @@ class Stream:
 			start_time = time.time()
 			msg = f"Downloading {title} in {self.resolution}p ({size_MB} MB)..."
 			log(msg, silent=False)
-			for count, chunk in enumerate(self.request.iter_content(chunk_size=self.chunk_size)):
-				file.write(chunk)
-				progress.file_size(
-					self.filename,
-					count,
-					start_time,
-					target_size=self.target_size
-				)
+			try:
+				for count, chunk in enumerate(self.request.iter_content(chunk_size=self.chunk_size)):
+					file.write(chunk)
+					progress.file_size(
+						self.filename,
+						count,
+						start_time,
+						target_size=self.target_size
+					)
+			except ConnectionResetError:
+				log("ERROR: Connection Reset!\nRetrying download...")
+				self.write()
 
 	def verify_path(self):
 		# MOVIES/Black Widow (2021)/Black Widow (2021).crdownload

@@ -434,7 +434,7 @@ class Scraper:
 				"videos = document.querySelectorAll(\"video\"); for(video of videos) {video.pause()}"
 			)
 
-			# print(target_url)
+			print(target_url)
 			# print(metadata)
 			# TODO: Log metatada here
 			# log(metadata)
@@ -447,6 +447,7 @@ class Scraper:
 			log(f"{target_url}|{metadata}|{self.author}--download")
 
 			# log(f"{filename}|{resolution}|{filesize}|{self.author}--credit")  # TODO: Just return the filename, resolution, and filesize
+			print(f"DEBUG source_url_list: {source_url_list}")
 			if url == source_url_list[-1]:
 				return target_url, metadata
 

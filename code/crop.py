@@ -24,7 +24,10 @@ def crop(img, loc, executable):
 		loc["y"]:loc["y"]+loc["y_off"],
 		loc["x"]:loc["x"]+loc["x_off"]
 	]
-	cv2.imwrite(img, ROI)
+	try:
+		cv2.imwrite(img, ROI)
+	except cv2.error:
+		return crop(img, loc, executable)
 	return img
 
 if __name__ == "__main__":

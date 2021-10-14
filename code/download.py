@@ -50,7 +50,7 @@ def validate_url(url, target_res):
 		request = requests.get(
 			url,
 			headers=headers,
-			proxies=(proxies if cfg.proxy else None),
+			#proxies=(proxies if cfg.proxy else None),
 			stream=True,
 			timeout=(30,60)
 		)

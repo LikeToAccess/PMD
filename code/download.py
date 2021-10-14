@@ -114,13 +114,14 @@ class Download:
 		year = self.metadata["data-year"]
 		# print(f"DEBUG: {filmname}")
 		if "Season" in filmname and "Episode" in filmname:
+			# Squid Game - Season 1 [Sub: Eng] Episode 01: Red Light, Green Light
 			print("Media is detected as TV Show.")
-			show_title = filmname.split(" - ")[0]
-			season = filmname.split(" - Season ")[1].split(" Episode")[0]
-			season = season if len(season) >= 2 else "0" + season
-			episode = filmname.split(" Episode ")[1].split(": ")[0]
-			episode_title = filmname.split(": ")[1]
-			filename = f"{show_title} - s{season}ep{episode} - {episode_title}"
+			show_title =    filmname.split(" - ")[0]
+			season =        filmname.split(" - Season ")[1].split(" Episode")[0].split(" [")[0]
+			season =        season if len(season) >= 2 else "0" + season
+			episode =       filmname.split(" Episode ")[1].split(": ")[0]
+			episode_title = filmname.split(": ")[(1 if " [" not in filmname else 2)]
+			filename =      f"{show_title} - s{season}ep{episode} - {episode_title}"
 			absolute_path = f"TV SHOWS/{show_title}/Season {season}/{filename}.crdownload"
 		else:
 			print("Media is detected as Movie/Film.")

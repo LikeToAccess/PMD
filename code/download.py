@@ -12,6 +12,7 @@
 #==============================================================================
 # import time
 import os
+from threading import Thread
 from scraper import Scraper
 import requests
 from requests.exceptions import *
@@ -39,12 +40,10 @@ def url_format(url, target_res):
 		url = url.replace(f"_{current_res}&token=ip=",f"_{target_res}&token=ip=")
 	return url
 
-def validate_url(url, target_res):
-	url = url_format(url, target_res)
-	# print(f"URL:      {url}")
-	# print(f"METADATA: {len(metadata)}")
-	# print(f"AUTHOR:   {author}")
-	# print(url == str(url))
+def validate_url(url, target_res=None):
+	if target_res:
+		url = url_format(url, target_res)
+	error_message = ""
 	try:
 		# log(url)
 		request = requests.get(
@@ -56,11 +55,11 @@ def validate_url(url, target_res):
 		)
 		status_code = request.status_code
 	except ConnectionError:
-		status_code = "403 (check the port on the proxy?)"
+		# status_code = "403 (check the port on the proxy?)"
+		error_message = " (check the port on the proxy?)"
+		status_code = 403
 		request = None
-	print(f"STATUS for {target_res}p: {status_code}")
-	if status_code == 200:
-		return True, request
+	print(f"STATUS for {target_res}p: {status_code}{error_message}" if target_res else None)
 	return status_code, request
 
 # def make_directory():
@@ -89,14 +88,14 @@ class Download:
 		for target_res in quality:
 			valid_resolution, request = validate_url(url, target_res)
 			valid_resolutions.append(valid_resolution)
-			if valid_resolutions[-1] is True:
+			if valid_resolutions[-1] == 200:
 				url = url_format(url, target_res)
 				break
-			if valid_resolutions[-1] == "403":
+			if valid_resolutions[-1] == 403:
 				filmname = self.metadata["data-filmname"]
 				log(f"ERROR: Link expired while scraping \"{filmname}\".")
 				return False, None, None
-		if True not in valid_resolutions:
+		if 200 not in valid_resolutions:
 			log(f"ERROR: Status code {valid_resolutions[-1]}.")
 			return False, None, None
 		return url, request, target_res
@@ -114,14 +113,16 @@ class Download:
 		year = self.metadata["data-year"]
 		# print(f"DEBUG: {filmname}")
 		if "Season" in filmname and "Episode" in filmname:
-			# Squid Game - Season 1 [Sub: Eng] Episode 01: Red Light, Green Light
 			print("Media is detected as TV Show.")
 			show_title =    filmname.split(" - ")[0]
 			season =        filmname.split(" - Season ")[1].split(" Episode")[0].split(" [")[0]
 			season =        season if len(season) >= 2 else "0" + season
 			episode =       filmname.split(" Episode ")[1].split(": ")[0]
-			episode_title = filmname.split(": ")[(1 if " [" not in filmname else 2)]
-			filename =      f"{show_title} - s{season}ep{episode} - {episode_title}"
+			try:
+				episode_title = filmname.split(": ")[(1 if " [" not in filmname else 2)]
+				filename =      f"{show_title} - s{season}ep{episode} - {episode_title}"
+			except IndexError:
+				filename =      f"{show_title} - s{season}ep{episode}"
 			absolute_path = f"TV SHOWS/{show_title}/Season {season}/{filename}.crdownload"
 		else:
 			print("Media is detected as Movie/Film.")
@@ -147,17 +148,21 @@ class Download:
 
 
 if __name__ == "__main__":
+	def run_download(url, metadata, author):
+		download_function = Download(url, metadata, author)
+		threaded_download = Thread(target=download_function.run)
+		threaded_download.start()
+
 	scraper = Scraper(minimize=False)
 	search = input("Enter a Title to search for:\n> ")
 
 	while search:
-		data = scraper.download_first_from_search(search)
-		if None in data:
-			print("No results!")
-			scraper.close()
-			quit()
+		download_queue = scraper.download_first_from_search(search)
+		for data in download_queue:
+			if None in data:
+				print("No results!")
+				scraper.close()
+				quit()
 
-		download = Download(data[0], data[1][list(data[1])[0]], "0")
-		download.run()
-
-		search = input("Enter a Title to search for:\n> ")
+			run_download(data[0], data[1][list(data[1])[0]], data[2])
+			search = input("Enter a Title to search for:\n> ")

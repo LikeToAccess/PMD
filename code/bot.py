@@ -13,6 +13,7 @@
 import time
 from threading import Thread
 import discord
+from requests.exceptions import MissingSchema
 from discord.ext import commands, tasks
 from scraper import Scraper
 from errors import NoResults
@@ -35,6 +36,7 @@ bot = commands.Bot(command_prefix=
 		"beta ",
 		"Beta ",
 		"BETA ",
+		"test ",
 	],
 	help_command=None)  #, case_insensitive=True)
 
@@ -61,10 +63,12 @@ async def on_message(message):
 		cfg.write_attempts(int(forced_resolution))
 	author = message.author
 	source_url = message.content
-	target_url, metadata = scraper.get_download_link(source_url)
-	run_download(target_url, metadata, author.id)
-	# threaded_download = Thread(target=download.download, args=(link,author))
-	# threaded_download.start()
+	download_queue = scraper.get_download_link(source_url)
+	for data in download_queue:
+		target_url, metadata, *_ = data
+		run_download(target_url, metadata, author.id)
+		# threaded_download = Thread(target=download.download, args=(link,author))
+		# threaded_download.start()
 
 @tasks.loop(seconds=0.5)
 async def check_logs(filename="log.txt"):
@@ -135,22 +139,24 @@ async def download_first_result(ctx, *movie_name):
 	scraper.author = author
 	if "https://gomovies-online." in movie_name:
 		await send("Downloading via direct link...")
-		url, metadata = scraper.get_download_link(movie_name)  # This would be a link not a query
+		download_queue = scraper.get_download_link(movie_name)  # This would be a link not a query
 	else:
 		await send("Searching for matches...")
 		try:
-			url, metadata = scraper.download_first_from_search(movie_name)  # Searches using a movie title
+			download_queue = scraper.download_first_from_search(movie_name)  # Searches using a movie title
 		except NoResults:
 			url = None
 
-	if url:
-		# If there were any results found, then download
-		await send("Link found, downloading starting...")
-		print(f"DEBUG: {metadata}")
-		await create_embed(metadata[list(metadata)[0]])
-		run_download(url, metadata[list(metadata)[0]], author)
-	else:
-		await send("**ERROR**: No search results found!")
+	for data in download_queue:
+		url, metadata, author = data
+		if url:
+			# If there were any results found, then download
+			await send("Link found, downloading starting...")
+			print(f"DEBUG: {metadata}")
+			await create_embed(metadata[list(metadata)[0]])
+			run_download(url, metadata[list(metadata)[0]], author)
+		else:
+			await send("**ERROR**: No search results found!")
 
 @bot.command()
 async def search(ctx, *search_query):
@@ -187,6 +193,15 @@ async def search(ctx, *search_query):
 @bot.command()
 async def react(ctx):
 	await ctx.message.add_reaction("\U0001F44D")
+
+@bot.command(aliases=["status", "validate"])
+async def validate_url(ctx, *url):
+	url = " ".join(url)
+	try:
+		status_code = download.validate_url(url)[0]
+		await send(f"Status for URL: {status_code}")
+	except MissingSchema as error:
+		await send(str(error))
 
 @bot.command()
 async def solve(ctx, captcha_solution):

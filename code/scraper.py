@@ -418,7 +418,10 @@ class Scraper:
 			source_url_list = [source_url]
 
 		# print(source_url_list)
+		download_queue = []
 		for url in source_url_list:
+			if not url.endswith("-online-for-free.html"):
+				continue
 			self.open_link(url)
 
 			if self.run_captcha_functions(): self.get_download_link(url, timeout)
@@ -444,12 +447,16 @@ class Scraper:
 
 
 			# target_url is returning a selenium element
-			log(f"{target_url}|{metadata}|{self.author}--download")
+			# log(f"{target_url}|{metadata}|{self.author}--download")  # Does nothing right now
+			download_queue.append((target_url,metadata,self.author))
+			# TODO: write all of the download links to a list so they can be downloaded in sequential order later (maybe return the list?)
 
 			# log(f"{filename}|{resolution}|{filesize}|{self.author}--credit")  # TODO: Just return the filename, resolution, and filesize
-			print(f"DEBUG source_url_list: {source_url_list}")
-			if url == source_url_list[-1]:
-				return target_url, metadata
+			# print(f"DEBUG source_url_list: {source_url_list}")
+			# if url == source_url_list[-1]:
+			# 	return target_url, metadata
+		# print(download_queue)
+		return download_queue
 
 	# '''Demitri's Holy Contribution'''
 	# def get_movie(self, name):
@@ -475,21 +482,20 @@ class Scraper:
 			search_time_elapsed = round(time.time()-start_time,2)
 			print(f"Finished scraping {len(search_results)} results in {search_time_elapsed} seconds!")
 			source_url = search_results[0].get_attribute("href")
-			# print(source_url)  # https://gomovies-online.cam/watch-tv-show/rick-and-morty-season-5/kT63YrkM
-			url = self.get_download_link(
+			download_queue = self.get_download_link(
 				source_url + ("-online-for-free.html" if "watch-tv-show" not in source_url else "")
-			)[0]
-			print("Link found.")
+			)  # [(x,y,z),(x,y,z),(x,y,z),...(x,y,z)]
+			print("Link found." if len(download_queue) == 1 else f"{len(download_queue)} links found.")
 			# print(metadata)
 			# log(str(metadata[list(metadata)[0]]) + "--embed")  # This is done bot side.
 		else:
 			print("Error: No search results found!")
 		print(f"Finished all scraping in {round(time.time()-start_time,2)} seconds!")
-		return url, metadata
+		return download_queue  # [(url,metadata,author)]
 
 	def run(self, search_query):
-		url = self.download_first_from_search(search_query)[0]
-		return url
+		download_queue = self.download_first_from_search(search_query)[0]
+		return download_queue
 
 
 def check_for_captcha_solve(timeout=100):

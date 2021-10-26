@@ -1,1 +1,1 @@
-print("He|llo".split("|")[(1+0)])
+print("Hello" if True else "Goodbye")

@@ -123,11 +123,11 @@ class Download:
 				filename =      f"{show_title} - s{season}ep{episode} - {episode_title}"
 			except IndexError:
 				filename =      f"{show_title} - s{season}ep{episode}"
-			absolute_path = f"TV SHOWS/{show_title}/Season {season}/{filename}.crdownload"
+			absolute_path = f"../TV SHOWS/{show_title}/Season {season}/{filename}.crdownload"
 		else:
 			print("Media is detected as Movie/Film.")
 			filename = (f"{filmname} ({year})" if filmname[-1] != ")" else filmname)
-			absolute_path = f"MOVIES/{filename}/{filename}.crdownload"
+			absolute_path = f"../MOVIES/{filename}/{filename}.crdownload"
 		# print(absolute_path)
 		# target_size = request.headers.get("content-length", 0)
 		stream = Stream(

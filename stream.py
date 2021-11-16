@@ -55,7 +55,6 @@ class Stream:
 				self.write()
 
 	def verify_path(self):
-		# MOVIES/Black Widow (2021)/Black Widow (2021).crdownload
 		path = "/".join(self.filename.split("/")[:-1])
 		path_exists = os.path.isdir(path)
 		if not path_exists:

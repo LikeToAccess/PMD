@@ -50,8 +50,10 @@ class Stream:
 						start_time,
 						target_size=self.target_size
 					)
-			except ConnectionResetError:
-				log("ERROR: Connection Reset!\nRetrying download...")
+			# except ConnectionResetError:
+			except Exception as e:
+				log(f"ERROR with {title}: Connection Reset!\nRetrying download...")
+				log(str(e))
 				self.write()
 
 	def verify_path(self):

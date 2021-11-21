@@ -1,5 +1,6 @@
 # [IMPORTS]
 import socket
+import os
 
 
 #
@@ -25,6 +26,8 @@ video_quality = [2160, 1440, 1080, 720, 480, 360]
 # video_quality = [2160, 360]
 stream_chunk_size = 8*1024*1024
 timeout = 60
+executable = "chromedriver.exe" if os.name == "nt" else "chromedriver"
+
 
 
 # [FUNCTIONS]

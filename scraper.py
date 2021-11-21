@@ -15,6 +15,7 @@ import os
 import sys
 import crop
 import media
+import config as cfg
 from errors import NoResults
 from media import log
 from selenium import webdriver
@@ -38,8 +39,7 @@ class Scraper:
 		options.add_argument(f"user-data-dir={user_data_dir}")
 		options.add_argument("--disable-gpu")
 		options.add_argument("log-level=3")
-		self.executable = "chromedriver.exe" if os.name == "nt" else "chromedriver"
-		self.driver = webdriver.Chrome(executable_path=os.path.abspath(self.executable), options=options)
+		self.driver = webdriver.Chrome(executable_path=os.path.abspath(cfg.executable), options=options)
 		self.first_launch = True
 		self.author = "0"
 		self.headers = {
@@ -339,7 +339,7 @@ class Scraper:
 		location = captcha_element.location
 		location["y_off"] = 50
 		location["x_off"] = 120
-		return crop.crop(filename, location, self.executable)
+		return crop.crop(filename, location, cfg.executable)
 
 	def check_captcha(self):
 		# Myles

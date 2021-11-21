@@ -24,14 +24,14 @@ quality = cfg.video_quality
 
 class Stream:
 	def __init__(self, request, filename, resolution, chunk_size=cfg.stream_chunk_size):
+		filename = filename.replace("\\", "/")
 		self.request = request
-		self.filename = filename.replace(":", "")
+		self.filename = (
+			"/".join(filename.split("/")[:1]) + "/".join(filename.split("/")[1:]).replace(":", "")
+		) if "exe" in cfg.executable else filename
 		self.resolution = resolution
 		self.chunk_size = chunk_size
 		self.target_size = int(request.headers.get("content-length", 0))
-
-		# log(f"DEBUG: Target Size is {target_size}.")
-		# resolution = quality[int(resolution)]
 
 	def write(self):
 		self.verify_path()
@@ -57,12 +57,11 @@ class Stream:
 				self.write()
 
 	def verify_path(self):
-		seperator = "/" if "/" in self.filename else "\\"
-		path = seperator.join(self.filename.split(seperator)[:-1])
+		path = "/".join(self.filename.split("/")[:-1])
 		path_exists = os.path.isdir(path)
 		if not path_exists:
-			print(f"DEBUG: {self.filename}")
-			print(f"DEBUG: {path}")
+			# print(f"DEBUG: {self.filename}")
+			# print(f"DEBUG: {path}")
 			os.makedirs(path)
 		return path_exists
 

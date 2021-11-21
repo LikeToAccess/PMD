@@ -46,7 +46,7 @@ def rename(filename_old, filename_new):
 	try: os.rename(filename_old, filename_new)
 	except FileExistsError:
 		remove_file(filename_new)
-		msg = f"Removed old version of show to be replaced with new version, {filename_new}"
+		msg = f"Removed old version of show to be replaced with new version, {filename_new}."
 		log(msg, silent=False)
 		rename(filename_old, filename_new)
 	return f"RENAME: {filename_old} -> {filename_new}"

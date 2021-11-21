@@ -70,7 +70,7 @@ class Stream:
 			# print("DEBUG: self.write")
 			self.write()
 			# print("DEBUG: media.rename")
-			media.rename(self.filename, self.filename.replace(".crdownload",".mp4"))
+			print(media.rename(self.filename, self.filename.replace(".crdownload",".mp4")))
 			# size_MB = round(self.target_size/1024/1024,2)
 			# log(f"Finished download of {self.filename} in {self.resolution}p ({size_MB} MB).")
 			# media.credit(author, filename=filename, resolution=resolution, file_size=file_size)

@@ -50,7 +50,7 @@ class Stream:
 						start_time,
 						target_size=self.target_size
 					)
-			# except ConnectionResetError:
+			# except ConnectionResetError as e:
 			except Exception as e:
 				log(f"ERROR with {title}: Connection Reset!\nRetrying download...")
 				log(str(e))
@@ -60,6 +60,8 @@ class Stream:
 		path = "/".join(self.filename.split("/")[:-1])
 		path_exists = os.path.isdir(path)
 		if not path_exists:
+			print(f"DEBUG: {self.filename}")
+			print(f"DEBUG: {path}")
 			os.makedirs(path)
 		return path_exists
 

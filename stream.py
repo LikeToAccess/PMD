@@ -57,7 +57,8 @@ class Stream:
 				self.write()
 
 	def verify_path(self):
-		path = "/".join(self.filename.split("/")[:-1])
+		seperator = "/" if "/" in self.filename else "\\"
+		path = seperator.join(self.filename.split(seperator)[:-1])
 		path_exists = os.path.isdir(path)
 		if not path_exists:
 			print(f"DEBUG: {self.filename}")

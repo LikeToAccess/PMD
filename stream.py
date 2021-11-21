@@ -27,7 +27,7 @@ class Stream:
 		filename = filename.replace("\\", "/")
 		self.request = request
 		self.filename = (
-			"/".join(filename.split("/")[:1]) + "/".join(filename.split("/")[1:]).replace(":", "")
+			"/".join(filename.split("/")[:1]) + "/" + "/".join(filename.split("/")[1:]).replace(":", "")
 		) if "exe" in cfg.executable else filename
 		self.resolution = resolution
 		self.chunk_size = chunk_size

@@ -12,4 +12,4 @@ Plex Media Downloader (Plex Bot / Mr. Plex)
   * Update the GitHub README.md file:
     * [x] This is way out of date...
     * [x] Instead of updating it I just removed all the irrelevant information
-  * For more plans, see [here][https://github.com/LikeToAccess/PMD/blob/main/TODO.md]
+  * For more plans, see [here](https://github.com/LikeToAccess/PMD/blob/main/TODO.md)

@@ -10,8 +10,6 @@
 # license           : MIT
 # py version        : 3.8.2 (must run on 3.6 or higher)
 #==============================================================================
-
-
 class TV_Show_Error(Exception):
 	pass
 

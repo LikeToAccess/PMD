@@ -100,22 +100,9 @@ class Scraper:
 		return results, metadata
 
 	def get_metadata_from_video(self, url):
-		#################
-		# TESTING START #
-		#################
-		# description = (
-		# 	self.driver.find_elements(By.CLASS_NAME, "_skQummZWZxE") + \
-		# 	self.driver.find_elements(By.CLASS_NAME, "_snsNGwwUUBn")
-		# )
-		# for element in description:
-		# 	element = element.text.replace("\n","\\n")
-		# 	print(f"DEBUG: description \"{element}\"")
-		#################
-		#  TESTING END  #
-		#################
 		filmname = self.driver.find_element(
 			By.XPATH, "//*[@id=\"info\"]/div[1]/div[1]/h1"
-		).text#.replace(":","")
+		).text
 
 		metadata = {}
 
@@ -137,21 +124,11 @@ class Scraper:
 			"data-descript": self.driver.find_element(
 							 	 By.CLASS_NAME, "_snmrSkaJSTK").text.split("\n")[1],
 			"img":           description[-1].get_attribute("src")
-			# "img":           self.driver.find_element(
-			# 					 By.CLASS_NAME, "_srtJammHptu").get_attribute("data-src"),
-			# "img":           self.driver.find_element(
-			# 					 By.XPATH,
-			# 					 "/html/body/main/div/div/section/div[5]/div/box/div/div/div/div[3]/div[4]/div[1]/div[1]"
-			# 				 ).get_attribute("data-src"),
 		}
 
 		if not metadata[filmname]["img"]:
 			metadata[filmname]["img"] = \
 				"https://upload.wikimedia.org/wikipedia/commons/a/af/Question_mark.png"
-
-		# print(metadata)
-		# self.close()
-		# quit()
 		return metadata
 
 	def wait_until_element(self, stratagy, locator, timeout=10):
@@ -163,17 +140,6 @@ class Scraper:
 				)
 			)
 		)
-		# try:
-		# 	element = wait.until(
-		# 		EC.presence_of_element_located(
-		# 			(
-		# 				stratagy, locator
-		# 			)
-		# 		)
-		# 	)
-		# except TimeoutException as e:
-		# 	log(error(e))
-		# 	raise e
 		return element
 
 	def open_link(self, url):
@@ -191,132 +157,6 @@ class Scraper:
 				self.open_link(url)
 			self.first_launch = False
 
-	def microcenter(self, url):
-		self.open_link(url)
-		items = {}
-		results = self.driver.find_elements(
-			By.XPATH, "//*[@class=\"product_wrapper\"]"
-		)
-		for result in results:
-			# Normal advertised Sale Price
-			try: price = result.find_element(
-					By.XPATH, "./div[2]/div/div[2]/div[1]/span").text
-			except NoSuchElementException: price = False
-
-			# Price after mail-in Rebate
-			try: rebate_price = result.find_element(
-					By.XPATH, "./div[2]/div/div[2]/div[2]").text
-			except NoSuchElementException: rebate_price = False
-
-			# Price for Open Boxed items
-			try: clearance_price = result.find_element(
-					By.XPATH, "./div[2]/div/div[2]/div[3]/span").text
-			except NoSuchElementException: clearance_price = False
-
-			# Product SKU
-			sku = result.find_element(
-					By.XPATH, "./div[2]/div/div[1]/p").text[5:]
-			# //*[@id="pwrapper_1"]/div[2]/div/div[1]/p
-
-			print(f"SKU: {sku}")
-			print(f"Price:           {price}")
-			print(f"Rebate Price:    {rebate_price if rebate_price else False}")
-			print(f"Clearance Price: {clearance_price}\n")
-
-			items[sku] = {
-				"price": price,
-				"rebate_price": rebate_price,
-				"clearance_price": clearance_price,
-			}
-
-		return items
-
-	def best_buy(self, url):
-		self.open_link(url)
-		self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-		items = {}
-		results = self.driver.find_elements(
-			By.XPATH, "//*[@class=\"sku-item\"]"
-		)
-		for result in results:
-			# Normal advertised Sale Price
-			try: price = result.find_element(
-					By.XPATH, "./div/div/div/div/div/div[2]/div[2]/div[1]/div/div/div/div/div/div/div[2]/div/div[1]/div/span[1]").text
-			except NoSuchElementException: price = False
-
-			# Price after mail-in Rebate
-			try: rebate_price = result.find_element(
-					By.XPATH, "W.I.P.").text
-			except NoSuchElementException: rebate_price = False
-
-			# Price for Open Boxed items
-			try: clearance_price = result.find_element(
-					By.XPATH, "./div/div/div/div/div/div[2]/div[2]/div[5]/div/div/div/div/div/div/div/div/a/span[2]").text.split("from ")[1]
-			except NoSuchElementException: clearance_price = False
-			except IndexError: clearance_price = False
-
-			# Product SKU
-			sku = result.find_element(
-					By.XPATH, "./div/div/div/div/div/div[2]/div[1]/div[3]/div[1]/div[2]/span[2]").text
-
-			# Product Name
-			name = result.find_element(
-					By.XPATH, "./div/div/div/div/div/div[2]/div[1]/div[2]/div/h4/a").text
-
-			# Product URL
-			url = result.find_element(
-					By.XPATH, "./div/div/div/div/div/div[2]/div[1]/div[2]/div/h4/a").get_attribute("href")
-
-			print(f"Name: {name}")
-			print(f"SKU:  {sku}")
-			print(f"Price:           {price}")
-			print(f"Rebate Price:    {rebate_price if rebate_price else False}")
-			print(f"Clearance Price: {clearance_price}")
-			print(f"URL: {url}\n")
-
-			items[sku] = {
-				"price": price,
-				"rebate_price": rebate_price,
-				"clearance_price": clearance_price,
-			}
-
-	def amazon(self, url):
-		self.open_link(url)
-		self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-		time.sleep(3)
-		items = {}
-		results = self.driver.find_elements(
-			By.XPATH, "//div[@class=\"a-section a-spacing-none\"]"
-		)
-		# /html/body/div[1]/div[2]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/span/div
-
-		# Product Name
-		names = self.driver.find_elements(
-				By.XPATH, "//h2[@class=\"a-size-mini a-spacing-none a-color-base s-line-clamp-2\"]")
-
-		# Product URL
-		urls = self.driver.find_elements(
-				By.XPATH, "//h2[@class=\"a-size-mini a-spacing-none a-color-base s-line-clamp-2\"]/a")
-
-		for index, result in enumerate(results):
-			# Product SKU
-			sku = result.get_attribute("data-asin")
-			# /html/body/div[1]/div[2]/div[1]/div[1]/div/span[3]/div[2]/div[3]
-			name = names[index].text
-			url  = urls[index].get_attribute("href")
-
-			#                                                                ./div/span/div/div/div[2]/div[2]/div/div/div[1]/h2/a/span
-			# /html/body/div[1]/div[2]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/span/div/div/div[2]/div[2]/div/div/div[1]/h2/a/span
-
-
-
-			print(f"Name: {name}")
-			print(f"SKU:  {sku}")
-			# print(f"Price:           {price}")
-			# print(f"Rebate Price:    {rebate_price if rebate_price else False}")
-			# print(f"Clearance Price: {clearance_price}")
-			print(f"URL: {url}\n")
-
 	def current_url(self):
 		return self.driver.current_url
 
@@ -324,14 +164,9 @@ class Scraper:
 		self.driver.close()
 
 	def get_results_from_search(self, element_class="item_hd", decription_class="_smQamBQsETb"):
-		# elements = self.driver.find_elements_by_class_name("item_hd") + \
-		# 		   self.driver.find_elements_by_class_name("item_series")
 		elements = self.driver.find_elements_by_class_name(element_class)
 		description = self.driver.find_elements_by_class_name(decription_class)  # _skQummZWZxE
 		return elements, description
-
-	# def maximize(self):
-	# 	self.driver.maximize_window()
 
 	def screenshot_captcha(self, captcha_element, filename="captcha.png"):
 		self.driver.save_screenshot(filename)
@@ -344,7 +179,6 @@ class Scraper:
 	def check_captcha(self):
 		# Myles
 		# Liam
-		#
 		try:
 			captcha_image = self.wait_until_element(
 				By.XPATH,
@@ -376,26 +210,7 @@ class Scraper:
 				captcha_submit.click()
 
 	def get_download_link(self, source_url, timeout=10):
-		# print(source_url)  # https://gomovies-online.cam/watch-tv-show/rick-and-morty-season-5/kT63YrkM
 		movie = "watch-tv-show" not in source_url
-
-		# if movie:
-		# 	source_url = (source_url.split(".html")[0] + ".html") if ".html" in source_url else source_url
-		# 	if not source_url.endswith("-online-for-free.html"):
-		# 		source_url += "-online-for-free.html"
-		# 	source_url_list = [source_url]
-		# elif not source_url.endswith(".html") and not movie:
-		# 	self.open_link(source_url)
-		# 	source_url_list = self.driver.find_elements(By.XPATH, "//*[@class=\"_sXFMWEIryHd \"]")
-		# 	# print(f"DEBUG: {source_url_list}")
-		# 	for index, source_url in enumerate(source_url_list):
-		# 		source_url_list[index] = source_url.get_attribute("href")
-		# 		if not isinstance(source_url_list[index], str):
-		# 			source_url_list.pop(index)
-		# 		elif not source_url_list[index].endswith(".html"):
-		# 			source_url_list.pop(index)
-		# 	print(f"DEBUG: source_url_list for not movie {source_url_list}")
-
 		# Link is a movie
 		if movie:
 			source_url = source_url.split(".html")[0] + ".html"
@@ -417,18 +232,14 @@ class Scraper:
 				source_url += "-online-for-free.html"
 			source_url_list = [source_url]
 
-		# print(source_url_list)
 		download_queue = []
 		for url in source_url_list:
 			if not url.endswith("-online-for-free.html"):
 				continue
+
 			self.open_link(url)
-
 			if self.run_captcha_functions(): self.get_download_link(url, timeout)
-
-			# TODO: This is returning selenium elements instead of strings when downloading movies (FIXME)
 			metadata = self.get_metadata_from_video(url)  # Works for movies and TV
-
 			target_url = self.wait_until_element(
 				By.TAG_NAME, "video", timeout
 			).get_attribute("src")
@@ -438,24 +249,8 @@ class Scraper:
 			)
 
 			print(target_url)
-			# print(metadata)
-			# TODO: Log metatada here
-			# log(metadata)
-			# download.run_download(target_url.get_attribute("src"), metadata[list(metadata)[0]], author)
-			# log(str(metadata[list(metadata)[0]]) + "--embed", silent=False)
-
-
-
-			# target_url is returning a selenium element
-			# log(f"{target_url}|{metadata}|{self.author}--download")  # Does nothing right now
 			download_queue.append((target_url,metadata,self.author))
 			# TODO: write all of the download links to a list so they can be downloaded in sequential order later (maybe return the list?)
-
-			# log(f"{filename}|{resolution}|{filesize}|{self.author}--credit")  # TODO: Just return the filename, resolution, and filesize
-			# print(f"DEBUG source_url_list: {source_url_list}")
-			# if url == source_url_list[-1]:
-			# 	return target_url, metadata
-		# print(download_queue)
 		return download_queue
 
 	# '''Demitri's Holy Contribution'''
@@ -465,19 +260,10 @@ class Scraper:
 
 	def download_first_from_search(self, search_query):
 		start_time = time.time()
-		url = None
 		search_results, metadata = self.search(
 			"https://gomovies-online.cam/search/" + \
 			"-".join(search_query.split())
 		)
-
-		# except errors.TV_Show_Error:
-		# 	self.open_link("https://gomovies-online.cam/search/" + "-".join(search_query.split()))
-		# 	self.driver.find_elements_by_class_name("item_series")[0].click()
-		# 	source_url = self.driver.current_url
-		# 	metadata = self.get_metadata_from_video(source_url)
-		# print(metadata)
-		# print(len(search_results))
 		if search_results:
 			search_time_elapsed = round(time.time()-start_time,2)
 			print(f"Finished scraping {len(search_results)} results in {search_time_elapsed} seconds!")
@@ -486,8 +272,6 @@ class Scraper:
 				source_url + ("-online-for-free.html" if "watch-tv-show" not in source_url else "")
 			)  # [(x,y,z),(x,y,z),(x,y,z),...(x,y,z)]
 			print("Link found." if len(download_queue) == 1 else f"{len(download_queue)} links found.")
-			# print(metadata)
-			# log(str(metadata[list(metadata)[0]]) + "--embed")  # This is done bot side.
 		else:
 			print("Error: No search results found!")
 		print(f"Finished all scraping in {round(time.time()-start_time,2)} seconds!")
@@ -516,10 +300,6 @@ def error(e):
 	''' Code by Confused Cottonmouth - Jan 13 2021 '''
 	exc_type, exc_obj, exc_tb = sys.exc_info()
 	filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-	# Exception type:  <class 'NotImplementedError'>
-	# File name:       src.py
-	# Line number:     5
-	# Exception data:
 	return f"```javascript\nException type:  {exc_type}\nFile name:       {filename}\nLine Number:     {exc_tb.tb_lineno}\nException data:  {e}```"
 
 
@@ -527,7 +307,6 @@ if __name__ == "__main__":
 	scraper = Scraper(minimize=False)
 	while True:
 		query = input("Enter a Title to search for:\n> ")
-		# query = "black widow"
 		if query:
 			scraper.run(query)
 		else:

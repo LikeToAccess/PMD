@@ -16,3 +16,5 @@ Plex Media Downloader (now merged with *Plex Bot*)
  	* For deeper integration and further automation, this is the way to go
  	* With more automation, things like automatically reading data directly from the browser become possible, you won't even need to open the Chrome Developer Menu (Inspect Element)
  		* [x] Done, add web scraper to the server
+ * Update the GitHub README.md file:
+    * This is way out of date...

@@ -62,23 +62,19 @@ class Stream:
 		path = "/".join(self.filename.split("/")[:-1])
 		path_exists = os.path.isdir(path)
 		if not path_exists:
-			# print(f"DEBUG: {self.filename}")
-			# print(f"DEBUG: {path}")
 			os.makedirs(path)
 		return path_exists
 
 	def stream(self):
 		with self.request as r:
-			# print("DEBUG: raise_for_status")
 			r.raise_for_status()
-			# print("DEBUG: self.write")
 			self.write()
-			# print("DEBUG: media.rename")
 			print(media.rename(self.filename, self.filename.replace(".crdownload",".mp4")))
-			# size_MB = round(self.target_size/1024/1024,2)
-			# log(f"Finished download of {self.filename} in {self.resolution}p ({size_MB} MB).")
-			# media.credit(author, filename=filename, resolution=resolution, file_size=file_size)
 
 
 if __name__ == "__main__":
-	print(Stream(None, "MOVIES/Black Widow (2021)/Black Widow (2021).crdownload", 1080).verify_path())
+	print(
+		Stream(
+			None, "MOVIES/Black Widow (2021)/Black Widow (2021).crdownload", 1080
+		).verify_path()
+	)

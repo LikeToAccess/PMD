@@ -10,13 +10,12 @@
 # license           : MIT
 # py version        : 3.8.2 (must run on 3.6 or higher)
 #==============================================================================
-# import time
 import os
 from threading import Thread
-from scraper import Scraper
 import requests
 from requests.exceptions import *
 from urllib3.exceptions import SSLError
+from scraper import Scraper
 from stream import Stream
 import config as cfg
 import media
@@ -24,10 +23,6 @@ from media import log
 
 
 headers = {"user-agent": cfg.user_agent}
-proxies = {
-	"http":  "socks5://192.168.50.99:9667",
-	"https": "socks5://192.168.50.99:9667"
-}
 quality = cfg.video_quality
 media_files = media.Media("MOVIES")
 home = os.getcwd()
@@ -45,30 +40,20 @@ def validate_url(url, target_res=None):
 		url = url_format(url, target_res)
 	error_message = ""
 	try:
-		# log(url)
 		request = requests.get(
 			url,
 			headers=headers,
-			#proxies=(proxies if cfg.proxy else None),
+			proxies=(cfg.proxy if cfg.proxy else None),
 			stream=True,
 			timeout=(30,60)
 		)
 		status_code = request.status_code
 	except ConnectionError:
-		# status_code = "403 (check the port on the proxy?)"
 		error_message = " (check the port on the proxy?)"
 		status_code = 403
 		request = None
 	print(f"STATUS for {target_res}p: {status_code}{error_message}" if target_res else None)
 	return status_code, request
-
-# def make_directory():
-# 	if media_files.path != "MOVIES":
-# 		root_path = media_files.path.split("/")[0]
-# 		if not os.path.isdir(root_path + f"/{media_files.show_title}"):
-# 			os.mkdir(root_path + f"/{media_files.show_title}")
-# 		if not os.path.isdir(root_path + f"/{media_files.show_title}/Season {media_files.season}"):
-# 			os.mkdir(root_path + f"/{media_files.show_title}/Season {media_files.season}")
 
 
 class Download:
@@ -106,12 +91,8 @@ class Download:
 		if self.url is False:
 			return False
 
-		# print(f"DEBUG: {self.url}")
-		# print(request.status_code)
-		# print(f"DEBUG: {self.metadata}")
 		filmname = self.metadata["data-filmname"]
 		year = self.metadata["data-year"]
-		# print(f"DEBUG: {filmname}")
 		if "Season" in filmname and "Episode" in filmname:
 			print("Media is detected as TV Show.")
 			show_title =    filmname.split(" - ")[0]
@@ -128,8 +109,6 @@ class Download:
 			print("Media is detected as Movie/Film.")
 			filename = (f"{filmname} ({year})" if filmname[-1] != ")" else filmname)
 			absolute_path = os.path.abspath(f"../MOVIES/{filename}/{filename}.crdownload")
-		# print(absolute_path)
-		# target_size = request.headers.get("content-length", 0)
 		stream = Stream(
 			request,
 			absolute_path,
@@ -137,7 +116,6 @@ class Download:
 				resolution_override if resolution_override else resolution
 			),
 		)
-		# print(f"DEBUG: Starting the download for, {absolute_path}...")
 		stream.stream()
 		filename = filename.replace(".crdownload", ".mp4")
 		file_size = round(int(request.headers.get("content-length", 0))/1024/1024,2)

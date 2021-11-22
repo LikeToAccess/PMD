@@ -29,11 +29,12 @@ from media import log
 class Scraper:
 	def __init__(self, minimize=True):
 		options = Options()
-		os.chdir("Chrome Extensions")
-		files = os.listdir()
+
+		files = os.listdir("Chrome Extensions")
 		for file in files:
 			if file.endswith("crx"):
-				options.add_extension(file)
+				options.add_extension(os.path.abspath(file))
+
 		# options.add_argument("headless")
 		user_data_dir = os.path.abspath("selenium_data")
 		options.add_argument(f"user-data-dir={user_data_dir}")
@@ -46,8 +47,6 @@ class Scraper:
 		if minimize: self.driver.minimize_window()
 
 	def search(self, url, media_type=0):
-		# print(url)
-		# print(movie)
 		if media_type == 0:  # Movie (HD)
 			element_class = "item_hd"
 			description_class = "_smQamBQsETb"
@@ -65,7 +64,6 @@ class Scraper:
 
 		if not results:
 			if media_type >= 2:  # TV Show
-				# print("Movie is False and no results were found")
 				raise NoResults
 			media_type += 1
 			return self.search(url, media_type=media_type)
@@ -77,11 +75,9 @@ class Scraper:
 				element_class=element_class,
 				decription_class=description_class
 			)
-		# time.sleep(10)
 
 		metadata = {}
 		for description in descriptions:
-			# print(description.get_attribute("data-imdb"))
 			if description.get_attribute("data-filmname") != description.text: continue
 			metadata[description.text.replace(":","")] = {
 				"data-filmname": description.get_attribute("data-filmname").replace(":",""),
@@ -93,7 +89,6 @@ class Scraper:
 				"data-descript": description.get_attribute("data-descript"),
 				"img":           description.find_element_by_tag_name("img").get_attribute("src")
 			}
-		# print(metadata)
 		return results, metadata
 
 	def get_metadata_from_video(self, url):
@@ -218,10 +213,8 @@ class Scraper:
 		elif not source_url.endswith(".html"):
 			self.open_link(source_url)
 			source_url_list = self.driver.find_elements(By.XPATH, "//*[@class=\"_sXFMWEIryHd \"]")
-			# print(f"DEBUG: {source_url_list}")
 			for index, source_url in enumerate(source_url_list):
 				source_url_list[index] = source_url.get_attribute("href")
-			# print(f"DEBUG: source_url_list for not movie {source_url_list}")
 		# Link is a TV show episode
 		else:
 			source_url = source_url.split(".html")[0] + ".html"

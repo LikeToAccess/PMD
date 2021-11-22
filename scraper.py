@@ -13,23 +13,23 @@
 import time
 import os
 import sys
-import crop
-import media
-import config as cfg
-from errors import NoResults
-from media import log
 from selenium import webdriver
 from selenium.common.exceptions import *
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import crop
+import media
+import config as cfg
+from errors import NoResults
+from media import log
 
 
 class Scraper:
 	def __init__(self, minimize=True):
-		# log("hello testing--file=captcha.png")
 		options = Options()
+		os.chdir("Chrome Extensions")
 		files = os.listdir()
 		for file in files:
 			if file.endswith("crx"):
@@ -42,11 +42,8 @@ class Scraper:
 		self.driver = webdriver.Chrome(executable_path=os.path.abspath(cfg.executable), options=options)
 		self.first_launch = True
 		self.author = "0"
-		self.headers = {
-			"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
-		}
-		if minimize:
-			self.driver.minimize_window()
+		self.headers = {"user-agent": cfg.user_agent}
+		if minimize: self.driver.minimize_window()
 
 	def search(self, url, media_type=0):
 		# print(url)

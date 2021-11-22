@@ -24,11 +24,13 @@ quality = cfg.video_quality
 
 class Stream:
 	def __init__(self, request, filename, resolution, chunk_size=cfg.stream_chunk_size):
-		filename = filename.replace("\\", "/")
-		self.request = request
-		self.filename = (
+		filename = filename.replace("\\", "/").replace("'", "")
+		filename = "".join(filename.split(".")[:-1]) + "." + filename.split(".")[-1]
+		filename = (
 			"/".join(filename.split("/")[:1]) + "/" + "/".join(filename.split("/")[1:]).replace(":", "")
 		) if "exe" in cfg.executable else filename
+		self.request = request
+		self.filename = filename
 		self.resolution = resolution
 		self.chunk_size = chunk_size
 		self.target_size = int(request.headers.get("content-length", 0))

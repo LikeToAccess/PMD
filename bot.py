@@ -143,6 +143,8 @@ async def download_first_result(ctx, *movie_name):
 				run_download(url, metadata[list(metadata)[0]], author)
 			else:
 				await send("**ERROR**: No search results found!")
+	else:
+		await send("No results!", silent=False)
 
 @bot.command()
 async def search(ctx, *search_query):

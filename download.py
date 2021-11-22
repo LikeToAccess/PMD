@@ -26,7 +26,7 @@ headers = {"user-agent": cfg.user_agent}
 quality = cfg.video_quality
 media_files = media.Media("MOVIES")
 home = os.getcwd()
-requests.adapters.HTTPAdapter(max_retries=2)
+requests.adapters.HTTPAdapter(max_retries=cfg.max_retries)
 
 
 def url_format(url, target_res):
@@ -70,7 +70,7 @@ class Download:
 			url = url.get_attribute("src")
 
 		valid_resolutions = []
-		for target_res in quality:
+		for target_res in quality:  # TODO: The proccess of checking every resolution's status code takes too long (fix me)
 			valid_resolution, request = validate_url(url, target_res)
 			valid_resolutions.append(valid_resolution)
 			if valid_resolutions[-1] == 200:
@@ -104,7 +104,9 @@ class Download:
 				filename =      f"{show_title} - s{season}ep{episode} - {episode_title}"
 			except IndexError:
 				filename =      f"{show_title} - s{season}ep{episode}"
-			absolute_path = os.path.abspath(f"../TV SHOWS/{show_title}/Season {season}/{filename}.crdownload")
+			absolute_path = os.path.abspath(
+				f"../TV SHOWS/{show_title}/Season {season}/{filename}.crdownload"
+			)
 		else:
 			print("Media is detected as Movie/Film.")
 			filename = (f"{filmname} ({year})" if filmname[-1] != ")" else filmname)

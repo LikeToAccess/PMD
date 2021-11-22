@@ -11,6 +11,7 @@ remote_server_address = "127.0.0.1"
 server_port = 26490
 network_buffer = 1024
 max_connections = 5
+max_retries = 2
 proxy = False
 # proxy = {
 # 	"http":  "socks5://192.168.50.98:9667",

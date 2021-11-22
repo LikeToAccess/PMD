@@ -130,18 +130,19 @@ async def download_first_result(ctx, *movie_name):
 		try:
 			download_queue = scraper.download_first_from_search(movie_name)  # Searches using a movie title
 		except NoResults:
-			url = None
+			download_queue = None
 
-	for data in download_queue:
-		url, metadata, author = data
-		if url:
-			# If there were any results found, then download
-			await send("Link found, downloading starting...")
-			print(f"DEBUG: {metadata}")
-			await create_embed(metadata[list(metadata)[0]])
-			run_download(url, metadata[list(metadata)[0]], author)
-		else:
-			await send("**ERROR**: No search results found!")
+	if download_queue:
+		for data in download_queue:
+			url, metadata, author = data
+			if url:
+				# If there were results and there is a valid URL, then download
+				await send("Link found, downloading starting...")
+				print(f"DEBUG: {metadata}")
+				await create_embed(metadata[list(metadata)[0]])
+				run_download(url, metadata[list(metadata)[0]], author)
+			else:
+				await send("**ERROR**: No search results found!")
 
 @bot.command()
 async def search(ctx, *search_query):

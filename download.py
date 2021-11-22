@@ -136,11 +136,12 @@ if __name__ == "__main__":
 
 	while search:
 		download_queue = scraper.download_first_from_search(search)
-		for data in download_queue:
-			if None in data:
-				print("No results!")
-				scraper.close()
-				quit()
+		if download_queue:
+			for data in download_queue:
+				if None in data:
+					log("No results!", silent=False)
 
-			run_download(data[0], data[1][list(data[1])[0]], data[2])
-			search = input("Enter a Title to search for:\n> ")
+				run_download(data[0], data[1][list(data[1])[0]], data[2])
+				search = input("Enter a Title to search for:\n> ")
+		else:
+			log("No results!", silent=False)

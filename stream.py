@@ -38,7 +38,7 @@ class Stream:
 	def write(self):
 		self.verify_path()
 		with open(self.filename, "wb") as file:
-			title = self.filename.split(".")[0].split("/")[-1:]
+			title = self.filename.split(".")[0].split("/")[-1:][0]
 			size_MB = round(self.target_size/1024/1024,2)
 			start_time = time.time()
 			msg = f"Downloading {title} in {self.resolution}p ({size_MB} MB)..."

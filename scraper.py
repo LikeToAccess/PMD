@@ -30,10 +30,11 @@ class Scraper:
 	def __init__(self, minimize=True):
 		options = Options()
 
-		files = os.listdir("Chrome Extensions")
+		path = "Chrome Extensions"
+		files = os.listdir(path)
 		for file in files:
 			if file.endswith("crx"):
-				options.add_extension(os.path.abspath(file))
+				options.add_extension(os.path.abspath(path + "/" + file))
 
 		# options.add_argument("headless")
 		user_data_dir = os.path.abspath("selenium_data")

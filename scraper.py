@@ -206,8 +206,11 @@ class Scraper:
 		movie = "watch-tv-show" not in source_url
 		# Link is a movie
 		if movie:
-			source_url = source_url.split(".html")[0] + ".html"
+			source_url = source_url.split(".html")[0] + (".html" if ".html" in source_url else "")
 			if not source_url.endswith("-online-for-free.html"):
+				# https://gomovies-online.cam/watch-film/the-godfather/axTk1vHi/7i7waSMV
+				# https://gomovies-online.cam/watch-film/the-godfather/axTk1vHi/7i7waSMV.html-online-for-free.html
+				# https://gomovies-online.cam/watch-film/the-godfather/axTk1vHi/7i7waSMV-online-for-free.html
 				source_url += "-online-for-free.html"
 			source_url_list = [source_url]
 		# Link is a TV show season

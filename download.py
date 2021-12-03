@@ -23,16 +23,15 @@ from media import log
 
 
 headers = {"user-agent": cfg.user_agent}
-quality = cfg.video_quality
+resolution_list = cfg.video_quality
 media_files = media.Media("MOVIES")
 home = os.getcwd()
 requests.adapters.HTTPAdapter(max_retries=cfg.max_retries)
 
 
-def url_format(url, target_res):
-	for current_res in quality:
-		url = url.replace(f"/{current_res}?name=",f"/{target_res}?name=")
-		url = url.replace(f"_{current_res}&token=ip=",f"_{target_res}&token=ip=")
+def url_format(url, target_res, old_res="360"):
+	url = url.replace(f"/{old_res}?name=",f"/{target_res}?name=")
+	url = url.replace(f"_{old_res}&token=ip=",f"_{target_res}&token=ip=")
 	return url
 
 def validate_url(url, target_res=None):
@@ -70,7 +69,7 @@ class Download:
 			url = url.get_attribute("src")
 
 		valid_resolutions = []
-		for target_res in quality:  # TODO: The proccess of checking every resolution's status code takes too long (fix me)
+		for target_res in resolution_list:  # TODO: The proccess of checking every resolution's status code takes too long (fix me)
 			valid_resolution, request = validate_url(url, target_res)
 			valid_resolutions.append(valid_resolution)
 			if valid_resolutions[-1] == 200:

@@ -22,8 +22,8 @@ proxy = False
 #
 # [DOWNLOAD OPTIONS]
 #
-download_attempts = 0
 user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+# video_quality = [2160, 1440, 1080, 720, 480, 360]
 video_quality = [2160, 1440, 1080, 720, 480, 360]
 stream_chunk_size = 8*1024*1024
 timeout = 60

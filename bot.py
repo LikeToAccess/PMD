@@ -58,9 +58,9 @@ async def on_message(message):
 	if message.author == bot.user: return
 
 	await send("Testing link...", silent=False)
-	if "--res=" in message.content:
-		forced_resolution = message.content.split("--res=")[1]
-		cfg.write_attempts(int(forced_resolution))
+	# if "--res=" in message.content:
+	# 	forced_resolution = message.content.split("--res=")[1]
+	# 	cfg.write_attempts(int(forced_resolution))
 	author = message.author
 	source_url = message.content
 	download_queue = scraper.get_download_link(source_url)
@@ -84,6 +84,10 @@ async def check_logs(filename="log.txt"):
 				await send(message[0], channel=message[1])
 			elif "--file" in message:
 				await send(message)
+			# elif "--res=" in message:
+			# 	forced_resolution = message.split("--res=")[1]
+			# 	cfg.write_attempts(int(forced_resolution))
+			# 	bulk_message.append(message.split("--res=")[0])
 			else:
 				bulk_message.append(message)
 

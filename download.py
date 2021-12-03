@@ -100,7 +100,8 @@ class Download:
 			episode =       filmname.split(" Episode ")[1].split(": ")[0]
 			try:
 				episode_title = filmname.split(": ")[(1 if " [" not in filmname else 2)]
-				filename =      f"{show_title} - s{season}ep{episode} - {episode_title}"
+				# filename =      f"{show_title} - s{season}ep{episode} - {episode_title}"
+				filename =      f"{show_title} - s{season}ep{episode}"
 			except IndexError:
 				filename =      f"{show_title} - s{season}ep{episode}"
 			absolute_path = os.path.abspath(

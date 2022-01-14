@@ -16,6 +16,7 @@ import sys
 from selenium import webdriver
 from selenium.common.exceptions import *
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -83,9 +84,25 @@ class Scraper:
 		# time.sleep(10)
 
 		metadata = {}
+		result_index = 1
+		media_type_index = 1
 		for description in descriptions:
-			# print(description.get_attribute("data-imdb"))
+			result_index += 1
 			if description.get_attribute("data-filmname") != description.text: continue
+
+			try:
+				poster_url = self.driver.find_element(
+					By.XPATH,
+					f"/html/body/main/div/div/section/div[1]/div/movies[{media_type_index}]/div/div/div/div[{result_index}]/a/div/div/img"
+				).get_attribute("src")
+			except NoSuchElementException:
+				result_index = 1
+				media_type_index += 1
+				poster_url = self.driver.find_element(
+					By.XPATH,
+					f"/html/body/main/div/div/section/div[1]/div/movies[{media_type_index}]/div/div/div/div[{result_index}]/a/div/div/img"
+				).get_attribute("src")
+
 			metadata[description.text.replace(":","")] = {
 				"data-filmname": description.get_attribute("data-filmname").replace(":",""),
 				"data-year":     description.get_attribute("data-year"),
@@ -94,25 +111,14 @@ class Scraper:
 				"data-country":  description.get_attribute("data-country"),
 				"data-genre":    description.get_attribute("data-genre"),
 				"data-descript": description.get_attribute("data-descript"),
-				"img":           description.find_element_by_tag_name("img").get_attribute("src")
+				"img":           poster_url
 			}
-		# print(metadata)
+
 		return results, metadata
 
 	def get_metadata_from_video(self, url):
-		#################
-		# TESTING START #
-		#################
-		# description = (
-		# 	self.driver.find_elements(By.CLASS_NAME, "_skQummZWZxE") + \
-		# 	self.driver.find_elements(By.CLASS_NAME, "_snsNGwwUUBn")
-		# )
-		# for element in description:
-		# 	element = element.text.replace("\n","\\n")
-		# 	print(f"DEBUG: description \"{element}\"")
-		#################
-		#  TESTING END  #
-		#################
+		# self.driver.find_element_by_tag_name('html').send_keys(Keys.PAGE_DOWN)
+
 		filmname = self.driver.find_element(
 			By.XPATH, "//*[@id=\"info\"]/div[1]/div[1]/h1"
 		).text#.replace(":","")
@@ -136,13 +142,8 @@ class Scraper:
 			"data-genre":    description[6].text.split(": ")[1],
 			"data-descript": self.driver.find_element(
 							 	 By.CLASS_NAME, "_snmrSkaJSTK").text.split("\n")[1],
-			"img":           description[-1].get_attribute("src")
-			# "img":           self.driver.find_element(
-			# 					 By.CLASS_NAME, "_srtJammHptu").get_attribute("data-src"),
-			# "img":           self.driver.find_element(
-			# 					 By.XPATH,
-			# 					 "/html/body/main/div/div/section/div[5]/div/box/div/div/div/div[3]/div[4]/div[1]/div[1]"
-			# 				 ).get_attribute("data-src"),
+			"img":			 self.driver.find_element(
+								 By.XPATH, "//*[@class=\"_srtJammHptu \"]/img").get_attribute("data-src"),
 		}
 
 		if not metadata[filmname]["img"]:

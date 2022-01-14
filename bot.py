@@ -147,7 +147,7 @@ async def download_first_result(ctx, *movie_name):
 			if url:
 				# If there were results and there is a valid URL, then download
 				await send("Link found, downloading starting...")
-				print(f"DEBUG: {metadata}")
+				# print(f"DEBUG: {metadata}")
 				await create_embed(metadata[list(metadata)[0]])
 				run_download(url, metadata[list(metadata)[0]], author)
 			else:

@@ -36,7 +36,12 @@ bot = commands.Bot(command_prefix=
 		"beta ",
 		"Beta ",
 		"BETA ",
-		"test ",
+		"please ",
+		"Please ",
+		"PLEASE ",
+		"pls ",
+		"Pls ",
+		"PLS ",
 	],
 	help_command=None)  #, case_insensitive=True)
 
@@ -58,9 +63,9 @@ async def on_message(message):
 	if message.author == bot.user: return
 
 	await send("Testing link...", silent=False)
-	if "--res=" in message.content:
-		forced_resolution = message.content.split("--res=")[1]
-		cfg.write_attempts(int(forced_resolution))
+	# if "--res=" in message.content:
+	# 	forced_resolution = message.content.split("--res=")[1]
+	# 	cfg.write_attempts(int(forced_resolution))
 	author = message.author
 	source_url = message.content
 	download_queue = scraper.get_download_link(source_url)

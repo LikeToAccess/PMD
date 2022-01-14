@@ -42,13 +42,12 @@ def remove_file(filename):
 
 def rename(filename_old, filename_new):
 	filename = filename_new.split(".")
-	filename_new = f"{filename[0].strip()}.{filename[1]}"
+	filename_new = f"{filename[0].strip()}.{filename[-1]}"
 	try: os.rename(filename_old, filename_new)
 	except FileExistsError:
 		remove_file(filename_new)
-		msg = f"Removed old version of show to be replaced with new version, {filename_new}"
-		print(msg)
-		log(msg)
+		msg = f"Removed old version of show to be replaced with new version, {filename_new}."
+		log(msg, silent=False)
 		rename(filename_old, filename_new)
 	return f"RENAME: {filename_old} -> {filename_new}"
 

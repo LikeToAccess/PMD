@@ -43,7 +43,7 @@ bot = commands.Bot(command_prefix=
 		"Pls ",
 		"PLS ",
 	],
-	help_command=None)  #, case_insensitive=True)
+	help_command=None, case_insensitive=True)
 
 
 #                    |
@@ -72,32 +72,27 @@ async def on_message(message):
 	for data in download_queue:
 		target_url, metadata, *_ = data
 		run_download(target_url, metadata, author.id)
-		# threaded_download = Thread(target=download.download, args=(link,author))
-		# threaded_download.start()
 
 @tasks.loop(seconds=0.5)
 async def check_logs(filename="log.txt"):
 	log_data = media.read_file(filename, filter=True)
 	if log_data:
-		# print(log_data)
 		media.write_file(filename, "### Beginning of message buffer from server ###\n")
 
 		bulk_message = []
 		for message in log_data:
-			# if "--download" in message:
-			# 	url, metadata, author = message.replace("--download","").split("|")
-			# 	run_download(url, metadata, author)
 			if "--embed" in message:
 				metadata = eval(message.replace("--embed",""))
 				await create_embed(metadata)
-			elif "--download" in message:
-				# media.credit(self.author, filename=filename, resolution=resolution, file_size=file_size)
-				pass  # TODO: I can't remember why I needed to pass through the metadata and author info
 			elif "--channel=" in message:
 				message = message.split("--channel=")
 				await send(message[0], channel=message[1])
 			elif "--file" in message:
 				await send(message)
+			# elif "--res=" in message:
+			# 	forced_resolution = message.split("--res=")[1]
+			# 	cfg.write_attempts(int(forced_resolution))
+			# 	bulk_message.append(message.split("--res=")[0])
 			else:
 				bulk_message.append(message)
 
@@ -131,12 +126,6 @@ async def downloads(ctx, user: discord.User, *flags):
 		f"{author} has downloaded {len(movies)} movies/episodes totaling {total_size}."
 	)
 
-# # TODO
-# @bot.command()
-# async def cancel(ctx, *filename):
-# 	#!cancel Star Wars The Bad Batch - S01e01 - Aftermath
-# 	if len(filename) > 1: filename = " ".join(filename)
-
 @bot.command(aliases=["add", "download"])
 async def download_first_result(ctx, *movie_name):
 	movie_name = " ".join(movie_name)
@@ -150,36 +139,29 @@ async def download_first_result(ctx, *movie_name):
 		try:
 			download_queue = scraper.download_first_from_search(movie_name)  # Searches using a movie title
 		except NoResults:
-			url = None
+			download_queue = None
 
-	for data in download_queue:
-		url, metadata, author = data
-		if url:
-			# If there were any results found, then download
-			await send("Link found, downloading starting...")
-			print(f"DEBUG: {metadata}")
-			await create_embed(metadata[list(metadata)[0]])
-			run_download(url, metadata[list(metadata)[0]], author)
-		else:
-			await send("**ERROR**: No search results found!")
+	if download_queue:
+		for data in download_queue:
+			url, metadata, author = data
+			if url:
+				# If there were results and there is a valid URL, then download
+				await send("Link found, downloading starting...")
+				print(f"DEBUG: {metadata}")
+				await create_embed(metadata[list(metadata)[0]])
+				run_download(url, metadata[list(metadata)[0]], author)
+			else:
+				await send("**ERROR**: No search results found!")
+	else:
+		await send("No results!", silent=False)
 
 @bot.command()
 async def search(ctx, *search_query):
 	search_query = " ".join(search_query)
 	author = ctx.author.id
 	scraper.author = author
-	# await send("Searching for matches...")
 	start_time = time.time()
-	# url, metadata = scraper.download_first_from_search(movie_name)  # Searches using a movie title
 	if search_query:
-		# try:
-		# 	results, metadata = scraper.search(
-		# 		"https://gomovies-online.cam/search/" + \
-		# 		"-".join(search_query.split())
-		# 	)
-		# except TimeoutException as e:
-		# 	await send(error(e))
-		# 	return False
 		results, metadata = scraper.search(
 			"https://gomovies-online.cam/search/" + \
 			"-".join(search_query.split())
@@ -192,8 +174,6 @@ async def search(ctx, *search_query):
 				await create_embed(metadata[description])
 		else:
 			await send("**ERROR**: No search results found!")
-		# await send("Link found, downloading starting...")
-		# run_download(url.get_attribute("src"), author)  # If there were any results found, then download
 
 @bot.command()
 async def react(ctx):
@@ -221,22 +201,6 @@ async def solve(ctx, captcha_solution):
 #                  V
 
 async def create_embed(metadata, color=0xcbaf2f, channel="commands"):
-	# description = (
-	# 	message["data-year"],
-	# 	message["data-imdb"],
-	# 	message["data-duration"],
-	# 	"Country: " + message["data-country"],
-	# 	message["data-genre"],
-	# 	message["data-descript"]
-	# )
-	# embed = discord.Embed(
-	# 	title=title,
-	# 	description=description,
-	# 	color=color
-	# )
-
-	# embed.set_thumbnail(url=thumbnail_url)
-	# print(metadata)
 	embed = discord.Embed(
 			title=metadata["data-filmname"],
 			description=metadata["data-genre"],

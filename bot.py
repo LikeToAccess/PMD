@@ -17,7 +17,7 @@ from requests.exceptions import MissingSchema
 from discord.ext import commands, tasks
 from scraper import Scraper
 from errors import NoResults
-import config as cfg
+# import config as cfg
 import media
 import download
 

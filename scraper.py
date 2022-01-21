@@ -48,6 +48,24 @@ class Scraper:
 		if minimize:
 			self.driver.minimize_window()
 
+	def get_movie_poster_url(self, result_index, media_type_index):
+		poster_path = self.driver.find_element(
+			By.XPATH,
+			"/html/body/main/div/div/section/div[1]/div"
+		)
+
+		if media_type_index >= 3: return "https://upload.wikimedia.org/wikipedia/commons/a/af/Question_mark.png"
+
+		try:
+			return poster_path.find_element(
+				By.XPATH,
+				f"movies[{media_type_index}]/div/div/div/div[{result_index}]/a/div/div/img"
+			).get_attribute("src")
+		except NoSuchElementException:
+			result_index = 1
+			media_type_index += 1
+			return self.get_movie_poster_url(result_index, media_type_index)
+
 	def search(self, url, media_type=0):
 		if media_type == 0:  # Movie (HD)
 			element_class = "item_hd"
@@ -85,23 +103,7 @@ class Scraper:
 			result_index += 1
 			if description.get_attribute("data-filmname") != description.text: continue
 
-			poster_path = self.driver.find_element(
-				By.XPATH,
-				"/html/body/main/div/div/section/div[1]/div"
-			)
-
-			try:
-				poster_url = poster_path.find_element(
-					By.XPATH,
-					f"movies[{media_type_index}]/div/div/div/div[{result_index}]/a/div/div/img"
-				).get_attribute("src")
-			except NoSuchElementException:
-				result_index = 1
-				media_type_index += 1
-				poster_url = poster_path.find_element(
-					By.XPATH,
-					f"movies[{media_type_index}]/div/div/div/div[{result_index}]/a/div/div/img"
-				).get_attribute("src")
+			poster_url = self.get_movie_poster_url(result_index, media_type_index)
 
 			metadata[description.text.replace(":","")] = {
 				"data-filmname": description.get_attribute("data-filmname").replace(":",""),

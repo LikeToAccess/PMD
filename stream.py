@@ -24,7 +24,7 @@ quality = cfg.video_quality
 
 class Stream:
 	def __init__(self, request, filename, resolution, chunk_size=cfg.stream_chunk_size):
-		filename = filename.replace("\\", "/").replace("'", "")
+		filename = filename.replace("\\", "/").replace("'", "").replace("?", "")
 		filename = "".join(filename.split(".")[:-1]) + "." + filename.split(".")[-1]
 		filename = (
 			"/".join(filename.split("/")[:1]) + "/" + "/".join(filename.split("/")[1:]).replace(":", "")

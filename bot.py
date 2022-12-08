@@ -26,6 +26,8 @@ credentials = media.read_file("credentials.md", filter=True)
 scraper = Scraper()
 token = credentials[0]
 allowed_users = credentials[1:]
+intents = discord.Intents.default()
+intents.message_content = True
 channel_id = {
 	"commands": 776367990560129066,
 	"log": 776354053222826004,
@@ -43,7 +45,7 @@ bot = commands.Bot(command_prefix=
 		"Pls ",
 		"PLS ",
 	],
-	help_command=None, case_insensitive=True)
+	help_command=None, case_insensitive=True, intents=intents)
 
 
 #                    |

@@ -186,8 +186,10 @@ class Scraper:
 		self.driver.close()
 
 	def get_results_from_search(self, element_class="item_hd", decription_class="_smQamBQsETb"):
-		elements = self.driver.find_elements_by_class_name(element_class)
-		description = self.driver.find_elements_by_class_name(decription_class)  # _skQummZWZxE
+		# elements = self.driver.find_elements_by_class_name(element_class)
+		# description = self.driver.find_elements_by_class_name(decription_class)  # _skQummZWZxE
+		elements = self.driver.find_elements(By.CLASS_NAME, element_class)
+		description = self.driver.find_elements(By.CLASS_NAME, decription_class)  # _skQummZWZxE
 		return elements, description
 
 	# def maximize(self):
@@ -268,7 +270,7 @@ class Scraper:
 			metadata = self.get_metadata_from_video(url)  # Works for movies and TV
 
 			target_url = self.wait_until_element(
-				By.TAG_NAME, "video", timeout
+				By.TAG_NAME, "video", 120
 			).get_attribute("src")
 
 			self.driver.execute_script(
